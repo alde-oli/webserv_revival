@@ -1,0 +1,59 @@
+#include "SmartTypes.hpp"
+
+///////////
+//AutoPtr//
+///////////
+
+template <typename T>
+AutoPtr<T>::AutoPtr(T* p) : _ptr(p){}
+
+template <typename T>
+AutoPtr<T>::~AutoPtr()
+	{delete _ptr;}
+
+
+template <typename T>
+T& AutoPtr<T>::operator*() const
+	{return *_ptr;}
+
+template <typename T>
+T* AutoPtr<T>::operator->() const
+	{return ptr;}
+
+////////////
+//AutoAPtr//
+////////////
+
+template <typename T>
+AutoAPtr<T>::AutoAPtr(T* p) : ptr(p){}
+
+template <typename T>
+AutoAPtr<T>::~AutoAPtr()
+	{delete _ptr;}
+
+
+template <typename T>
+T* AutoAPtr<T>::get() const
+	{return ptr;}
+
+
+//////////
+//AutoFD//
+//////////
+
+AutoFD::AutoFD() : _fd(-1){}
+
+AutoFD::AutoFD(int fd) : fd(_fd){}
+
+AutoFD::~AutoFD()
+	{if(_fd > -1) closeFD();}
+
+
+void AutoFD::set(int fd)
+	{if (_fd > -1) close(_fd); _fd = fd;}
+
+int AutoFD::get() const
+	{return _fd;}
+
+void AutoFD::close()
+	{if(_fd > -1) close(_fd); _fd = -1;}
