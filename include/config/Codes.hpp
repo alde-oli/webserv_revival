@@ -1,7 +1,5 @@
 #pragma once
 
-#define DEFAULT_DIR "error_pages"
-
 #include "libs.hpp"
 
 #define DEFAULT_ERRORS "error_pages/"
@@ -25,6 +23,7 @@ class Codes
 		//////////////////////
 
 		Error						&operator=(Error const &src) = delete;
+		friend std::ostream			&operator<<(std::ostream &out, Error const &src);
 
 		///////////
 		//setters//
@@ -37,6 +36,12 @@ class Codes
 		///////////
 
 		std::string					getErrPage(int code);
+
+		////////////////////
+		//member functions//
+		////////////////////
+
+		void						checkValidity();
 
 
 	private:

@@ -18,7 +18,8 @@ class Route
 		//operators overload//
 		//////////////////////
 
-		Route						&operator=(Route const &src) = delete;
+		Route						&operator=(Route const &src);
+		friend std::ostream			&operator<<(std::ostream &out, Route const &src);
 
 		///////////
 		//setters//
@@ -68,6 +69,12 @@ class Route
 		bool						isUpload();
 
 		bool						isCgi(std::string path);
+
+		////////////////////
+		//member functions//
+		////////////////////
+
+		void						checkValidity();
 
 
 	private:

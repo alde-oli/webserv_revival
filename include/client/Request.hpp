@@ -18,7 +18,8 @@ class	Request
 		//operators overload//
 		//////////////////////
 
-		Request								&operator=(Request const &src) = delete;
+		Request								&operator=(Request const &src);
+		friend std::ostream					&operator<<(std::ostream &out, Request const &src);
 
 		///////////
 		//setters//
@@ -45,6 +46,13 @@ class	Request
 
 		std::string							getRawBody();
 		Data								getRefinedBody();
+
+		/////////////////////
+		//member functions//
+		/////////////////////
+
+		void								build(std::string rawRequest);
+		void								clear();
 
 
 	private:

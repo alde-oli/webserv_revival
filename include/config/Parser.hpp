@@ -26,7 +26,12 @@ class Parser
 
 		Parser							&operator=(Parser const &src) = delete;
 
+		////////////////////
+		//member functions//
+		////////////////////
+
 		static std::vector<ServConfig>	parseConfig(std::string path);
+		static void						checkValidity(std::vector<ServConfig> &servers);
 
 
 	private:

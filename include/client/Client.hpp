@@ -14,17 +14,38 @@ class Client
 		///////////////////////////////
 		//Constructors and destructor//
 		///////////////////////////////
+		Client() = delete;
+		Client(int clientFd, int serverFd);
+		Client(const Client& c) = delete;
+		~Client();
 
 		//////////////////////
 		//operators overload//
 		//////////////////////
 
+		Client&					operator=(const Client& c);
+		friend std::ostream&	operator<<(std::ostream& os, const Client& c);
+
+		///////////
+		//setters//
+		///////////
+
+		void					setRequest(Request &request);
+		void					setResponse(Response &response);
+
+		///////////
+		//getters//
+		///////////
+
+		Request					&getRequest();
+		Response				&getResponse();
+
 
 	private:
-		AutoFD		_flientFd;
-		int			_ServerFd;
+		AutoFD					_flientFd;
+		int						_ServerFd;
 
-		Request		_request;
+		Request					_request;
 
-		Response	_response;
+		Response				_response;
 }

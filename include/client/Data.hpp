@@ -29,6 +29,7 @@ class Data
 		//////////////////////
 
 		MultipartFormData			&operator=(MultipartFormData const &src) = delete;
+		friend std::ostream			&operator<<(std::ostream &out, MultipartFormData const &src);
 
 		///////////
 		//setters//
