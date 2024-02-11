@@ -1,0 +1,147 @@
+#include "webserv.hpp"
+
+//main function to initiate the server, handle events, and manage clients
+void	ServRunner::run(std::vector<ServConfig> &servers)
+{
+	AutoFD kq;
+	//initiate server sockets and kqueue
+	setSockets(servers);
+	setKqueue(kq, servers);
+	//map to store clients bound to their fd
+	std::map<int, Client> clients;
+	//set timeout for kqueue
+	timeval kqTimeout; kqTimeout.tv_sec = KEVENT_TO; kqTimeout.tv_usec = 0;
+	//stores events
+	struct kevent events[MAX_EVENTS];
+	//main loop, everything happens here
+	while ("skibidi papa")
+	{
+		int event = kevent(kq.get(), NULL, 0, events, MAX_EVENTS, &kqTimeout);
+		if (event < 0)
+			{std::cerr << "kevent() fail" << std::endl; continue;}
+		for (int i = 0; i < event; i++)
+		{
+			if (events[i].flags & EV_EOF) //client closed connection
+				{clients.erase(events[i].ident); continue;}
+			//analysing events
+			else if (events[i].flags & EVFILT_READ)
+			{
+				int new = 0;
+				//find out if new client or existing client then accept new client or read client requets
+				for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
+					{if (events[i].ident == it->getSocketFd())
+						{ServRunner::acceptNew(kq.get(), it->getSocketFd(), clients); new = 1; break;}} //accept new client
+				if (!new)
+					{for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
+						{if (it->getSocketFd() == clients[events[i].ident].getServFd())
+						{
+							if (clients[events[i].ident].read(*it)) //read client request, return 1 if client needs to be closed
+								{clients.erase(events[i].ident); break;}
+							break;
+						}}} 
+			}
+			else if (events[i].flags & EVFILT_WRITE)
+				clients[events[i].ident].write(); //write client response
+			else
+				{std::cerr << "unknown event" << std::endl;} 
+			ServRunner::checkTimeouts(clients); //check last clients activity
+}	}	}
+
+
+//accepts new client and adds it to the clients map
+void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client> &clients)
+{
+	struct sockaddr_in clientAddr;
+	socklen_t clientAddrLen = sizeof(clientAddr);
+	//accept new client
+	int clientFd = accept(serverFd, (struct sockaddr *)&clientAddr, &clientAddrLen);
+	if (clientFd < 0)
+		{std::cerr << "accept() failed" << std::endl; return;}
+	//set client fd to non-blocking
+	int flags = fcntl(clientFd, F_GETFL, 0);
+	if (flags < 0 || fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) < 0)
+		{std::cerr << "fcntl() failed" << std::endl; close(clientFd); return;}
+
+	//set recv timeout
+	struct timeval recvTimeout; recvTimeout.tv_sec = RECV_TO; recvTimeout.tv_usec = 0;
+	if (setsockopt(clientFd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout)) < 0)
+		{std::cerr << "setsockopt(SO_RCVTIMEO) failed" << std::endl; close(clientFd); return;}
+	//set send timeout
+	struct timeval sendTimeout; sendTimeout.tv_sec = SEND_TO; sendTimeout.tv_usec = 0;
+	if (setsockopt(clientFd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout)) < 0)
+		{std::cerr << "setsockopt(SO_SNDTIMEO) failed" << std::endl; close(clientFd); return;}
+
+	//add client read event to kqueue
+	struct kevent ev;
+	EV_SET(&ev, clientFd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	if (kevent(kq, &ev, 1, NULL, 0, NULL) < 0)
+		{std::cerr << "kevent() failed" << std::endl; close(clientFd); return;}
+	//add client write event to kqueue
+	EV_SET(&ev, clientFd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, NULL);
+	if (kevent(kq, &ev, 1, NULL, 0, NULL) < 0)
+		{std::cerr << "kevent() failed" << std::endl; close(clientFd); return;}
+
+	//add client to clients map
+	clients[clientFd] = Client(clientFd, clientAddr, serverFd);
+}
+
+
+//checks if clients have been inactive for duration INACTIVE_TO and closes them if they have
+void ServRunner::checkTimeouts(std::map<int, Client>& clients)
+{
+	std::time_t now = std::time(NULL);
+
+	for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end();)
+	{
+		if (now - it->second.getLastActivity() > INACTIVE_TO)
+			clients.erase(it++);
+		else
+			++it;
+}	}
+
+
+//initiates server sockets
+void	ServRunner::setSockets(std::vector<ServConfig> &servers)
+{
+	for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		//init socket
+		it->setSocketFd(socket(AF_INET, SOCK_STREAM, 0));
+		if (it->getSocketFd() < 0)
+			{std::cerr << "socket() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+		//set socket as reusing address
+		int opt = 1;
+		if (setsockopt(it->getSocketFd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+			{std::cerr << "setsockopt() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+		//set socket to non-blocking
+		int flags = fcntl(it->getSocketFd(), F_GETFL, 0);
+		if (flags < 0 || fcntl(it->getSocketFd(), F_SETFL, flags | O_NONBLOCK) < 0)
+			{std::cerr << "fcntl() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+		//set recv timeout
+		struct timeval recvTimeout; recvTimeout.tv_sec = ACCEPT_TO; recvTimeout.tv_usec = 0;
+		if (setsockopt(it->getSocketFd(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout)) < 0)
+			{std::cerr << "setsockopt(SO_RCVTIMEO) failed for " << it->getId() << ". Exiting program." << std::endl; exit(1);}
+		//bind and listen
+		if (bind(it->getSocketFd(), (struct sockaddr *)&it->getAddr(), sizeof(it->getAddr())) < 0)
+			{std::cerr << "bind() failed for " << it->getId() << ". exiting program"  << std::endl; exit(1);}
+		if (listen(it->getSocketFd(), 20) < 0)
+			{std::cerr << "listen() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+}	}
+
+
+//initiates kqueue for read and write events and adds server sockets to it
+void	ServRunner::setKqueue(AutoFD &kq, std::vector<ServConfig> &servers)
+{
+	//init kqueue
+	kq.set(kqueue());
+	if (kq.get() < 0)
+		{std::cerr << "kqueue() failed. exiting program" << std::endl; exit(1);}
+	//add server sockets to kqueue
+	for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		struct kevent ev;
+		//add read event only because servers_fd just accept new clients
+		EV_SET(&ev, it->getSocketFd(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+		if (kevent(kq.get(), &ev, 1, NULL, 0, NULL) < 0)
+			{std::cerr << "kevent() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+}	}

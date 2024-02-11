@@ -72,7 +72,6 @@ class ServConfig
 
 		bool							isValid();
 
-
 	private:
 		std::string						_id;
 		std::string						_name;

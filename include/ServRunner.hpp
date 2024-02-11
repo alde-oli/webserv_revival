@@ -1,6 +1,8 @@
 #pragma once
 
 #include "libs.hpp"
+#include "ServConfig.hpp"
+#include "Client.hpp"
 
 class ServRunner
 {
@@ -22,7 +24,8 @@ class ServRunner
 		//member functions//
 		////////////////////
 
-		void	setSockets(std::vector<ServConfig> &servers);
-		void	setKqueue(std::vector<ServConfig> &servers);
 		void	run(std::vector<ServConfig> &servers);
+		void	acceptNew(int kq, int serverFd, std::map<int, clients&> &clients);
+		void	setSockets(std::vector<ServConfig> &servers);
+		void	setKqueue(AutoFD &kq, std::vector<ServConfig> &servers);
 }

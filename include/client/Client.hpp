@@ -6,8 +6,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 
-//Client class to store the client fd and the server fd it is connected to
-//Also stores the request and response objects
+//Client class to store client information and handle client events
 class Client
 {
 	public:
@@ -15,7 +14,7 @@ class Client
 		//Constructors and destructor//
 		///////////////////////////////
 		Client() = delete;
-		Client(int clientFd, int serverFd);
+		Client(int clientFd, sockaddr_in ClientAddr, int serverFd);
 		Client(const Client& c) = delete;
 		~Client();
 
@@ -23,27 +22,44 @@ class Client
 		//operators overload//
 		//////////////////////
 
-		Client&					operator=(const Client& c);
+		Client&					operator=(const Client& c) = delete;
 		friend std::ostream&	operator<<(std::ostream& os, const Client& c);
 
 		///////////
 		//setters//
 		///////////
 
-		void					setRequest(Request &request);
-		void					setResponse(Response &response);
+		void					updateActivity();
 
 		///////////
 		//getters//
 		///////////
 
-		Request					&getRequest();
-		Response				&getResponse();
+		int						getServFd();
+		sockaddr_in				getAddr();
+		std::time_t				getLastActivity();
+
+		////////////////////
+		//member functions//
+		////////////////////
+
+		int						read(ServConfig &server, int kq);
+		void					write();
+
+		void					setWriteEvent(int kq);
+		void					unsetWriteEvent(int kq);
 
 
 	private:
-		AutoFD					_flientFd;
+		AutoFD					_clientFd;
 		int						_ServerFd;
+		sockaddr_in				_clientAddr;
+		std::time_t				_lastActivity;
+
+		std::string				_rawRequest; //stores unprocessed data
+		static bool				_EOHFound;
+		static size_t			_bodyToRead;
+		
 
 		Request					_request;
 
