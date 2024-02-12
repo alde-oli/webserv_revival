@@ -41,6 +41,7 @@ class ServConfig
 
 		void							addRoute(Route &route);
 		void							setErrors(Codes &errors);
+		void							setDefaultErrorPage(std::string error);
 
 		void							setMaxBodySize(int maxBodySize);
 		void							setCookies(bool cookies);
@@ -86,4 +87,9 @@ class ServConfig
 
 		int								_maxBodySize;
 		bool							_cookies;
+
+		// forgots variables
+		std::string				  		_port;
+		std::string						_host;
+		std::string						_defaultErrorPage
 };
