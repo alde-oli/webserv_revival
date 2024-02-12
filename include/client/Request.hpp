@@ -51,7 +51,8 @@ class	Request
 		//member functions//
 		/////////////////////
 
-		void								build(std::string rawRequest);
+		bool								buildHeader(std::string rawHeader);
+		bool								handle(ServConfig &server, Response &response);
 		void								clear();
 
 

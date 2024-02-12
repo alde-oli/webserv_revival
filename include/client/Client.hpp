@@ -43,11 +43,11 @@ class Client
 		//member functions//
 		////////////////////
 
-		int						read(ServConfig &server, int kq);
-		void					write();
+		bool					read(ServConfig &server, int kq);
+		bool					write(int kq);
 
-		void					setWriteEvent(int kq);
-		void					unsetWriteEvent(int kq);
+		bool					setWriteEvent(int kq);
+		bool					unsetWriteEvent(int kq);
 
 
 	private:
@@ -56,7 +56,7 @@ class Client
 		sockaddr_in				_clientAddr;
 		std::time_t				_lastActivity;
 
-		std::string				_rawRequest; //stores unprocessed data
+		std::string				_rawRequest;
 		static bool				_EOHFound;
 		static size_t			_bodyToRead;
 		
