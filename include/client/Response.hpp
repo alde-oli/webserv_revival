@@ -44,6 +44,7 @@ class Response
 		///////////
 
 		int					getCode();
+
 		bool				getKeepAlive();
 
 		std::string			getCookie();

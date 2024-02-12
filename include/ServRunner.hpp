@@ -25,7 +25,7 @@ class ServRunner
 		////////////////////
 
 		void	run(std::vector<ServConfig> &servers);
-		void	acceptNew(int kq, int serverFd, std::map<int, clients&> &clients);
+		void	acceptNew(int kq, int serverFd, std::map<int, Client&> &clients);
 		void	setSockets(std::vector<ServConfig> &servers);
 		void	setKqueue(AutoFD &kq, std::vector<ServConfig> &servers);
 }

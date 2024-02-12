@@ -52,7 +52,7 @@ class Client
 
 	private:
 		AutoFD					_clientFd;
-		int						_ServerFd;
+		int						_serverFd;
 		sockaddr_in				_clientAddr;
 		std::time_t				_lastActivity;
 
@@ -64,4 +64,4 @@ class Client
 		Request					_request;
 
 		Response				_response;
-}
+};

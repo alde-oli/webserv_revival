@@ -83,7 +83,7 @@ bool	Client::read(ServConfig &server, int kq)
 
 			if (_request.getMethod() == "POST") //if POST we need content length to read body
 				{if ( _request.getHeaders().find("Content-Length") != _request.getHeaders().end())
-					{_bodyToRead = std::atoi(_request.getHeaders().find("Content-Length")->second);
+					{_bodyToRead = std::atoi(_request.getHeaders().find("Content-Length")->second.c_str());
 					if (_bodyToRead > server.getMaxBodySize())
 						{_EOHFound = false; _response.build(413, "", server); setWriteEvent(kq); return false;}}
 				else //build error response
@@ -142,7 +142,7 @@ bool	Client::write(int kq)
 	if (fullySent = true)//get ready to handle next interaction
 	{
 		_response.clear();
-		if (unsetWriteEvent())
+		if (unsetWriteEvent(kq))
 			return true;
 	}
 	return closeClient;
@@ -152,8 +152,8 @@ bool	Client::write(int kq)
 bool	Client::setWriteEvent(int kq)
 {
 	struct kevent ev;
-	EV_SET(&kev, _clientFd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-	if(kevent(kq, &kev, 1, NULL, 0, NULL) < 0)
+	EV_SET(&ev, _clientFd.get(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	if(kevent(kq, &ev, 1, NULL, 0, NULL) < 0)
 		{std::cerr << "error while registering write event, closing client" << std::endl << *this; return true;}
 	return false;
 }
@@ -161,9 +161,9 @@ bool	Client::setWriteEvent(int kq)
 //end write event
 bool	Client::unsetWriteEvent(int kq)
 {
-    struct kevent kev;
-    EV_SET(&kev, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-    if (kevent(kq, &kev, 1, NULL, 0, NULL) < 0)
+    struct kevent ev;
+    EV_SET(&ev, _clientFd.get(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+    if (kevent(kq, &ev, 1, NULL, 0, NULL) < 0)
 		{std::cerr << "error while unregistering write event, closing client" << std::endl << *this; return true;}
 	return false;
 }

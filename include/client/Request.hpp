@@ -52,6 +52,7 @@ class	Request
 		/////////////////////
 
 		bool								buildHeader(std::string rawHeader);
+		bool								buildBody(std::string rawBody);
 		bool								handle(ServConfig &server, Response &response);
 		void								clear();
 

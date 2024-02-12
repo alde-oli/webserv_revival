@@ -8,7 +8,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 	setSockets(servers);
 	setKqueue(kq, servers);
 	//map to store clients bound to their fd
-	std::map<int, Client> clients;
+	std::map<int, Client&> clients;
 	//set timeout for kqueue
 	timeval kqTimeout; kqTimeout.tv_sec = KEVENT_TO; kqTimeout.tv_usec = 0;
 	//stores events
@@ -26,16 +26,16 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 			//analysing events
 			else if (events[i].flags & EVFILT_READ)
 			{
-				int new = 0;
+				int newClient = 0;
 				//find out if new client or existing client then accept new client or read client requets
 				for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
 					{if (events[i].ident == it->getSocketFd())
-						{ServRunner::acceptNew(kq.get(), it->getSocketFd(), clients); new = 1; break;}} //accept new client
-				if (!new)
+						{ServRunner::acceptNew(kq.get(), it->getSocketFd(), clients); newClient = 1; break;}} //accept new client
+				if (!newClient)
 					{for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
 						{if (it->getSocketFd() == clients[events[i].ident].getServFd())
 						{
-							if (clients[events[i].ident].read(*it)) //read client request, return 1 if client needs to be closed
+							if (clients[events[i].ident].read(*it, kq.get())) //read client request, return 1 if client needs to be closed
 								{clients.erase(events[i].ident); break;}
 							break;
 						}}} 
@@ -49,7 +49,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 
 
 //accepts new client and adds it to the clients map
-void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client> &clients)
+void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client&> &clients)
 {
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
@@ -82,16 +82,16 @@ void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client> &clients)
 		{std::cerr << "kevent() failed" << std::endl; close(clientFd); return;}
 
 	//add client to clients map
-	clients[clientFd] = Client(clientFd, clientAddr, serverFd);
+	clients[clientFd].Client(clientFd, clientAddr, serverFd);
 }
 
 
 //checks if clients have been inactive for duration INACTIVE_TO and closes them if they have
-void ServRunner::checkTimeouts(std::map<int, Client>& clients)
+void ServRunner::checkTimeouts(std::map<int, Client&>& clients)
 {
 	std::time_t now = std::time(NULL);
 
-	for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end();)
+	for (std
 	{
 		if (now - it->second.getLastActivity() > INACTIVE_TO)
 			clients.erase(it++);
