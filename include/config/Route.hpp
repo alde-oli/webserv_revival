@@ -10,9 +10,9 @@ class Route
 		//Constructors and destructor//
 		///////////////////////////////
 
-		Route();
+		Route(){};
 		Route(Route const &src) = delete;
-		~Route();
+		~Route(){};
 
 		//////////////////////
 		//operators overload//
@@ -42,6 +42,7 @@ class Route
 		void						setDownloadDir(std::string downloadDir);
 
 		void						setIsUpload(std::string isUpload);
+		void						setForceUpload(std::string forceUpload);
 
 		void						setCgiExt(std::string cgiExt);
 
@@ -95,6 +96,7 @@ class Route
 		std::string					_downloadDir;
 
 		bool						_isUpload;
+		bool						_forceUpload;
 
 		std::vector<std::string>	_cgiExt;
 };
