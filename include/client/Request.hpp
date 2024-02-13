@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libs.hpp"
+#include "Data.hpp"
 
 //Class to store the parsed request from the client
 class	Request
@@ -20,39 +21,15 @@ class	Request
 
 		Request								&operator=(Request const &src);
 		friend std::ostream					&operator<<(std::ostream &out, Request const &src);
+		std::string							operator[](std::string key);
 
-		///////////
-		//setters//
-		///////////
-
-		void								setMethod(std::string method);
-		void								setUri(std::string uri);
-		void								setHttpVersion(std::string httpVersion);
-
-		void								addHeader(std::string key, std::string value);
-
-		void								addRawBody(std::string rawBody);
-		void								RefinedBody(Data &refinedBody);
-
-		///////////
-		//getters//
-		///////////
-
-		std::string							getMethod();
-		std::string							getUri();
-		std::string							getHttpVersion();
-
-		std::map<std::string, std::string>	getHeaders();
-
-		std::string							getRawBody();
-		Data								getRefinedBody();
-
-		/////////////////////
+		////////////////////
 		//member functions//
-		/////////////////////
+		////////////////////
 
 		bool								buildHeader(std::string rawHeader);
 		bool								buildBody(std::string rawBody);
+		bool								isHeader(std::string key);
 		bool								handle(ServConfig &server, Response &response);
 		void								clear();
 
@@ -66,4 +43,21 @@ class	Request
 
 		std::string							_rawBody;
 		Data								_refinedBody;
-}
+};
+
+
+//requests examples:
+
+// GET /exemple.html HTTP/1.1
+// Host: www.exemple.com
+// User-Agent: MonNavigateur/1.0
+// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+// Accept-Language: fr,en-US;q=0.7,en;q=0.3
+// Connection: keep-alive
+
+// 	GET /cgi-bin/exemple.cgi?param1=valeur1&param2=valeur2 HTTP/1.1
+// Host: www.exemple.com
+// User-Agent: MonNavigateur/1.0
+// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+// Accept-Language: fr,en-US;q=0.7,en;q=0.3
+// Connection: keep-alive

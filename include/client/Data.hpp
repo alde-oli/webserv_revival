@@ -19,34 +19,34 @@ class Data
 		//Constructors and destructor//
 		///////////////////////////////
 
-		MultipartFormData();
-		MultipartFormData(std::string contentType, std::string rawContent);
-		MultipartFormData(MultipartFormData const &src) = delete;
-		~MultipartFormData();
+		Data();
+		Data(std::string contentType, std::string rawContent);
+		Data(Data const &src) = delete;
+		~Data();
 
 		//////////////////////
 		//operators overload//
 		//////////////////////
 
-		MultipartFormData			&operator=(MultipartFormData const &src) = delete;
-		friend std::ostream			&operator<<(std::ostream &out, MultipartFormData const &src);
+		Data						&operator=(Data const &src) = delete;
+		friend std::ostream			&operator<<(std::ostream &out, Data const &src);
 
 		///////////
 		//setters//
 		///////////
 
-		void 						setBoundary(std::string boundary);
-		void						setContent(std::vector<contentData> content);
+		bool						setFiles(std::string boundary, std::string rawContent);
+		bool						setCgiArgs(std::string rawContent);
 
 		///////////
 		//getters//
 		///////////
 
-		std::string 				getBoundary();
-		std::vector<contentData>	getContent();
-
+		std::vector<contentData>	getFiles();
+		std::vector<std::string>	getCgiArgs();
 
 	private:
-		std::string					_boundary;
-		std::vector<contentData>	_content;
+		std::vector<contentData>	_files;
+
+		std::vector<std::string>	_cgiArgs;
 };

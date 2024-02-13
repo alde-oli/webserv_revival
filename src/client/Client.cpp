@@ -78,7 +78,7 @@ bool	Client::read(ServConfig &server, int kq)
 		{
 			_EOHFound = true;
 			if (_request.buildHeader(_rawRequest.substr(0, it - _rawRequest.begin())))
-				return true;
+				_response.build(400, "", server); return false;
 			_rawRequest = _rawRequest.substr(it - _rawRequest.begin() + EOHeader.size());
 
 			if (_request.getMethod() == "POST") //if POST we need content length to read body
@@ -115,7 +115,8 @@ bool	Client::read(ServConfig &server, int kq)
 		_rawRequest += std::string(buff, bytesRead);
 		if (_rawRequest.size() >= _bodyToRead)
 		{
-			_request.buildBody(_rawRequest.substr(0, _bodyToRead));
+			if (_request.buildBody(_rawRequest.substr(0, _bodyToRead)))
+				{_response.build(400, "", server); return false;}
 			_rawRequest = _rawRequest.substr(_bodyToRead);
 			bool wasError = _request.handle(server, _response);
 			if (wasError || setWriteEvent(kq))
