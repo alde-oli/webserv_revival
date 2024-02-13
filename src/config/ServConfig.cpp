@@ -1,4 +1,4 @@
-#include "ServConfig.hpp"
+#include "../../include/config/ServConfig.hpp"
 
 /////////////////
 // [ GETTERS ] //
@@ -169,7 +169,7 @@ ServConfig	&ServConfig::operator=(const ServConfig &other)
 // ---------------------------- [ ADDITIONAL FUNCTIONS FOR PARSING ] -------------------------------- //
 
 // Cerror message and exit
-void ServConfig::CerrExit(const char* message, std::string precision)
+void CerrExit(const char* message, std::string precision)
 {
 	std::cerr << message << precision << std::endl;
 	exit(1);

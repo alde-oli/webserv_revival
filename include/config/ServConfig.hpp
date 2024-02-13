@@ -77,7 +77,6 @@ class ServConfig
 		// member function //
 		/////////////////////
 		
-		void 						CerrExit(const char* message, std::string precision);
 		int 						CountOccurrences(const std::string& str, char charToFind);
 		long long int			 	setSize(std::string size);
 		int long long				BodySizeChecker(std::string size);
@@ -113,5 +112,7 @@ class ServConfig
 		////////////////////////
 		std::string				  		_port;
 		std::string						_host;
-		std::string						_defaultErrorPage
+		std::string						_defaultErrorPage;
 };
+
+void 						CerrExit(const char* message, std::string precision);

@@ -4,44 +4,44 @@
 
 #define DEFAULT_ERRORS "error_pages/"
 
-//class to store custom error pages
-//is used to get custom and default error pages from a given code
-//is also used to get the right message for codes from 1XX to 5XX
+// class to store custom error pages
+// is used to get custom and default error pages from a given code
+// is also used to get the right message for codes from 1XX to 5XX
 class Codes
 {
 	public:
-		///////////////////////////////
-		//Constructors and destructor//
-		///////////////////////////////
+		/////////////////////////////////
+		// Constructors and destructor //
+		/////////////////////////////////
 
-		Error() {};
-		Error(Error const &src) = delete;
-		~Error() {};
+		Codes() {};
+		Codes(Codes const &src) = delete;
+		~Codes() {};
 
-		//////////////////////
-		//operators overload//
-		//////////////////////
+		////////////////////////
+		// operators overload //
+		////////////////////////
 
-		Error						&operator=(Error const &src) = delete;
-		friend std::ostream			&operator<<(std::ostream &out, Error const &src);
+		Codes						&operator=(Codes const &src) = delete;
+		friend std::ostream			&operator<<(std::ostream &out, Codes const &src);
 
-		///////////
-		//setters//
-		///////////
+		/////////////
+		// setters //
+		/////////////
 
 		void						addErrPage(int code, std::string page);
 
-		///////////
-		//getters//
-		///////////
+		/////////////
+		// getters //
+		/////////////
 
 		std::string					getErrPage(int code);
 
-		////////////////////
-		//member functions//
-		////////////////////
+		//////////////////////
+		// member functions //
+		//////////////////////
 
-		void						checkValidity();
+		bool						checkValidity(std::string dir);
 
 
 	private:
