@@ -164,14 +164,14 @@ ServConfig	&ServConfig::operator=(const ServConfig &other)
 // ---------------------------- [ ADDITIONAL FUNCTIONS FOR PARSING ] -------------------------------- //
 
 // Cerror message and exit
-static void CerrExit(const char* message, std::string precision)
+void ServConfig::CerrExit(const char* message, std::string precision)
 {
 	std::cerr << message << precision << std::endl;
 	exit(1);
 }
 
 // Return the number of times occurence has been found
-static int CountOccurrences(const std::string& str, char charToFind)
+int ServConfig::CountOccurrences(const std::string& str, char charToFind)
 {
     int count = 0;
     for (std::size_t i = 0; i < str.size(); ++i)
@@ -181,7 +181,7 @@ static int CountOccurrences(const std::string& str, char charToFind)
 }
 
 // Second part of the body size checker
-static long long int setSize(std::string size)
+long long int ServConfig::setSize(std::string size)
 {
 	long long nbr;
 
@@ -206,7 +206,7 @@ static long long int setSize(std::string size)
 }
 
 // Chek if the input in body size is valid
-static int long long BodySizeChecker(std::string size)
+int long long ServConfig::BodySizeChecker(std::string size)
 {
 	if (!size.empty()) 
 	{
@@ -229,7 +229,7 @@ static int long long BodySizeChecker(std::string size)
 	return (0);
 }
 
-static bool setBool(std::string boolean)
+bool ServConfig::setBool(std::string boolean)
 {
 	bool value;
 
@@ -246,11 +246,13 @@ static bool setBool(std::string boolean)
 
 // Renvoie le nom du serveur entre crochets
 // NULL si les crochets ne sont pas complets
-std::string ExtractServerName(const std::string& line) {
+std::string ServConfig::ExtractServerName(const std::string& line)
+{
     std::size_t start = line.find("[");
     std::size_t end = line.find("]", start);
 
-    if (start != std::string::npos && end != std::string::npos) {
+    if (start != std::string::npos && end != std::string::npos)
+	{
         // Extrait le nom du serveur, en omettant les crochets eux-mêmes.
         // +1 pour commencer après le crochet ouvrant, et end-start-1 pour exclure les deux crochets.
         return line.substr(start + 1, end - start - 1);
@@ -259,7 +261,7 @@ std::string ExtractServerName(const std::string& line) {
 }
 
 // Check if the sever already exists
-static bool ServerNameExists(std::vector<ServConfig> servers, std::string serverName)
+bool ServConfig::ServerNameExists(std::vector<ServConfig> servers, std::string serverName)
 {
     for (std::size_t i = 0; i < servers.size(); ++i)
         if (servers[i].getName() == serverName)
@@ -268,7 +270,7 @@ static bool ServerNameExists(std::vector<ServConfig> servers, std::string server
 }
 
 // Return the index of the existing server
-static int IndexServer(std::vector<ServConfig> servers, std::string serverName)
+int ServConfig::IndexServer(std::vector<ServConfig> servers, std::string serverName)
 {
     for (std::size_t i = 0; i < servers.size(); ++i)
         if (servers[i].getName() == serverName)
@@ -277,7 +279,7 @@ static int IndexServer(std::vector<ServConfig> servers, std::string serverName)
 }
 
 // Remplis le serveur mis en arguments avec le reste du file
-static void fillServer(ServConfig &server, std::string line, std::ifstream &file)
+void ServConfig::fillServer(ServConfig &server, std::string line, std::ifstream &file)
 {
 	// Continue de lire le fichier jusqu'au prochain []
     while (std::getline(file, line))
@@ -315,7 +317,7 @@ static void fillServer(ServConfig &server, std::string line, std::ifstream &file
 }
 
 // Le serveur n'existe pas, on le cree
-static void createAndFillServer(std::vector<ServConfig> server, std::string line, std::ifstream &file)
+void ServConfig::createAndFillServer(std::vector<ServConfig> server, std::string line, std::ifstream &file)
 {
 	ServConfig newServer;
 	newServer.setName(ExtractServerName(line));
@@ -324,7 +326,7 @@ static void createAndFillServer(std::vector<ServConfig> server, std::string line
 }
 
 // Gere les cas [NOM_SERVER]
-static void RegularServerTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file)
+void ServConfig::RegularServerTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file)
 {
     std::string serverName = ExtractServerName(line);
 
@@ -337,15 +339,15 @@ static void RegularServerTreatment(std::vector<ServConfig> servers, std::string 
 		createAndFillServer(servers, line, file); // Créer puis remplir les infos dans un new serveur
 }
 
-// Gere les cas [NOM_SERVER:OPTION] / [NOM_SERVER:OPTION:OPTION] ---- INCOMPLETE ----
-static void	ServerOptionTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file)
+// Gere les cas [NOM_SERVER:OPTION] / [NOM_SERVER:OPTION:OPTION]
+void	ServConfig::ServerOptionTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file)
 {
 	// Si un seul double point
 	if (CountOccurrences(line, ':') == 1)
 	{
         std::string option =  line.substr(line.find(':'), line.length());
 		if (option == "ERROR" || option == "ROUTES")
-			// [ A FAIRE ] Traiter les singles options ---- INCOMPLETE ----
+			setRoute(file, line);
 		else
 			CerrExit("[ ERROR ] Invalid server option: ", option);
 	}
@@ -353,16 +355,74 @@ static void	ServerOptionTreatment(std::vector<ServConfig> servers, std::string l
 	{
 		std::string option =  line.substr(line.find(':'), line.length());
 		if (option.substr(0, 6) == "ROUTES" || option.substr(0, 5) == "ERROR")
-		{
-			option =  line.substr(line.find(':'), line.length()); // Recupere la deuxieme option
-		}
+			setRoute(file, line);
 		else
 			CerrExit("[ ERROR ] Invalid server option: ", option);
 	}
 }
 
+// Traitement route
+void	ServConfig::setRoute(std::fstream &file, std::string &line)
+{
+	std::string		key;
+	std::string		value;
+
+	if (line[0] != '[')
+		CerrExit("Error: unexpected line", line);
+	Route route = Route();
+	route.setId(line.substr(line.find_last_of(':') + 1, line.length() - line.find_last_of(':') - 2));
+
+	while (std::getline(file, line) && line[0] != '[')
+	{
+		if (line.empty())
+			continue ;
+		else if (!line.find("route = "))
+			route.setPath(line.substr(8));
+		else if (!line.find("root = "))
+			route.setRoot(line.substr(7));
+		else if (!line.find("default_page = "))
+			route.setDefaultPage(line.substr(15));
+		else if (!line.find("methods = "))
+			route.setMethods(line.substr(10));
+		else if (!line.find("listing = "))
+			route.setListing(line.substr(10));
+		else if (!line.find("upload = "))
+			route.setIsUpload(line.substr(9));
+		else if (!line.find("force_upload = "))
+			route.setForceUpload(line.substr(15));
+		else if (!line.find("download = "))
+			route.setIsDownload(line.substr(11));
+		else if (!line.find("download_dir = "))
+			route.setDownloadDir(line.substr(15));
+		else if (!line.find("redir = "))
+			route.setIsRedir(line.substr(8));
+		else if (!line.find("redir_route = "))
+			route.setRedirDir(line.substr(14));
+		else if (!line.find("cgi = "))
+			route.setCgiExt(line.substr(6));
+		else
+			CerrExit("Error: invalid route line: ", line);
+	}
+	this->_routes[route.getId()] = route;
+
+	std::string newRouteFormat = "[" + this->_id + ":ROUTES:";
+	if (line.find(newRouteFormat) == 0 && line[line.length() - 1] == ']')
+	{
+		int colonCount = 0;
+		for (size_t i = 0; i < line.length(); i++)
+		{
+			if (line[i] == ':')
+				colonCount++;
+		}
+		if (colonCount == 2 && line.find_last_of(':') < line.length() - 2)
+			setRoute(file, line);
+		else
+			CerrExit("Error: invalid route format", line);
+	}
+} 
+
 // Tu recois le debut d'un nouveau block de config
-static void BeginBlockConfig(std::string line, std::ifstream &file, std::vector<ServConfig>	servers)
+void ServConfig::BeginBlockConfig(std::string line, std::ifstream &file, std::vector<ServConfig>	servers)
 {
 	std::size_t bracketPos = line.find(']');
 	std::size_t doubleDotsPos = line.find(':');
@@ -380,7 +440,7 @@ static void BeginBlockConfig(std::string line, std::ifstream &file, std::vector<
 
 // Args: 	FileName
 //			Map Sever Config
-std::vector<ServConfig>	ServerParsing(char *filename)
+std::vector<ServConfig>	ServConfig::ServerParsing(char *filename)
 {
 	std::vector<ServConfig>	servers;
     std::ifstream file(filename);
