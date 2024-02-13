@@ -1,12 +1,12 @@
 #include "../../include/config/Codes.hpp"
 #include "../../include/config/ServConfig.hpp"
 
-Codes						&Codes::operator=(Codes const &src)
+Codes	&Codes::operator=(Codes const &src)
 {
 	this->_errPages = src._errPages;
 }
 
-std::ostream				&operator<<(std::ostream &out, Codes const &src)
+std::ostream	&operator<<(std::ostream &out, Codes const &src)
 {
 	out << "Error pages: " << std::endl;
 	for (std::map<int, std::string>::const_iterator it = src._errPages.begin(); it != src._errPages.end(); it++)
@@ -16,17 +16,15 @@ std::ostream				&operator<<(std::ostream &out, Codes const &src)
 	return out;
 }
 
-void						Codes::addErrPage(int code, std::string page)
+void	Codes::addErrPage(int code, std::string page)
 {
 	this->_errPages[code] = page;
 }
 
-std::string					Codes::getErrPage(int code)
+const std::string	&Codes::getErrPage(int code) const
 {
-	std::map<int, std::string>::iterator it = this->_errPages.find(code);
-	if (it != this->_errPages.end())
-		return it->second;
-	return "";
+	std::map<int, std::string>::const_iterator it = _errPages.find(code);
+	return (it->second);
 }
 
 bool 	Codes::checkValidity(std::string dir)

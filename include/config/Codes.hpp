@@ -22,7 +22,7 @@ class Codes
 		// operators overload //
 		////////////////////////
 
-		Codes						&operator=(Codes const &src) = delete;
+		Codes						&operator=(Codes const &src);
 		friend std::ostream			&operator<<(std::ostream &out, Codes const &src);
 
 		/////////////
@@ -35,7 +35,7 @@ class Codes
 		// getters //
 		/////////////
 
-		std::string					getErrPage(int code);
+		const std::string					&getErrPage(int code) const;
 
 		//////////////////////
 		// member functions //

@@ -24,7 +24,7 @@ class ServConfig
 		///////////////////////
 
 		friend std::ostream&			operator<<(std::ostream& os, const ServConfig& servConfig);
-		ServConfig						&operator=(ServConfig const &src) = delete;
+		ServConfig						&operator=(ServConfig const &src);
 
 		/////////////
 		// setters //
@@ -50,22 +50,22 @@ class ServConfig
 		// getters //
 		/////////////
 
-		std::string						getId();
-		std::string						getName();
-		sockaddr_in						getAddr();
-		int								getSocketFd();
+		std::string						getId() const;
+		std::string						getName() const;
+		sockaddr_in						getAddr() const;
+		int								getSocketFd() const;
 
-		bool							getIsDefault();
-		std::string						getDefaultPage();
+		bool							getIsDefault() const;
+		std::string						getDefaultPage() const;
 
-		int								getMaxBodySize();
-		bool							isCookies();
+		int								getMaxBodySize() const;
+		bool							isCookies() const;
 
-		bool							isRoute(std::string path);
-		Route							&getRoute(std::string path);
+		bool							isRoute(std::string path) const;
+		Route							&getRoute(std::string path) const;
 
-		std::map<std::string, Route&>	getRoutes();
-		std::string						getErrorPage(int code);
+		std::map<std::string, Route&>	getRoutes() const;
+		std::string						getErrorPage(int code) const;
 
 		/////////////
 		// checker //
@@ -77,20 +77,7 @@ class ServConfig
 		// member function //
 		/////////////////////
 		
-		int 						CountOccurrences(const std::string& str, char charToFind);
-		long long int			 	setSize(std::string size);
-		int long long				BodySizeChecker(std::string size);
-		bool 						setBool(std::string boolean);
-		std::string 				ExtractServerName(const std::string& line);
-		bool						ServerNameExists(std::vector<ServConfig> servers, std::string serverName);
-		int 						IndexServer(std::vector<ServConfig> servers, std::string serverName);
-		void						fillServer(std::string line, std::ifstream &file);
-		void						createAndFillServer(std::vector<ServConfig> server, std::string line, std::ifstream &file);
-		void						RegularServerTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file);
-		void						ServerOptionTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file);
-		void 						BeginBlockConfig(std::string line, std::ifstream &file, std::vector<ServConfig>	servers);
 		std::vector<ServConfig>		ServerParsing(char *filename);
-		void						setRoute(std::ifstream &file, std::string &line);
 
 	private:
 		std::string						_id;
