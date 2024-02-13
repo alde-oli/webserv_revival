@@ -71,7 +71,26 @@ class ServConfig
 		// checker //
 		/////////////
 
-		bool							isValid(); 
+		bool							isValid();
+
+		/////////////////////
+		// member function //
+		/////////////////////
+		
+		int 						CountOccurrences(const std::string& str, char charToFind);
+		long long int			 	setSize(std::string size);
+		int long long				BodySizeChecker(std::string size);
+		bool 						setBool(std::string boolean);
+		std::string 				ExtractServerName(const std::string& line);
+		bool						ServerNameExists(std::vector<ServConfig> servers, std::string serverName);
+		int 						IndexServer(std::vector<ServConfig> servers, std::string serverName);
+		void						fillServer(std::string line, std::ifstream &file);
+		void						createAndFillServer(std::vector<ServConfig> server, std::string line, std::ifstream &file);
+		void						RegularServerTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file);
+		void						ServerOptionTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file);
+		void 						BeginBlockConfig(std::string line, std::ifstream &file, std::vector<ServConfig>	servers);
+		std::vector<ServConfig>		ServerParsing(char *filename);
+		void						setRoute(std::ifstream &file, std::string &line);
 
 	private:
 		std::string						_id;
@@ -93,5 +112,7 @@ class ServConfig
 		////////////////////////
 		std::string				  		_port;
 		std::string						_host;
-		std::string						_defaultErrorPage
+		std::string						_defaultErrorPage;
 };
+
+void 						CerrExit(const char* message, std::string precision);

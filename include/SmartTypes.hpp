@@ -49,7 +49,7 @@ class AutoFD
 
 		AutoFD&			operator=(const AutoFD& a) = delete;
 
-		explicit void	set(int fd);
+		void	set(int fd);
 		
 		int				get() const;
 		void			close();
