@@ -44,16 +44,21 @@ bool		ServConfig::isCookies()
 	return (this->_cookies);
 }
 
-// [ A FAIRE ] Verifier le chemin 
+// Verifier le chemin 
 bool		ServConfig::isRoute(std::string path)
 {
+	DIR	*dirp;
 
+	dirp = opendir(path.c_str());
+	if (!dirp)
+		return false;
+	closedir(dirp);
+	return true;
 }
 
-// [ A FAIRE ]
 Route		&ServConfig::	getRoute(std::string path)
 {
-
+	return (this->_routes[path]);
 }
 
 std::map<std::string, Route&>	ServConfig::getRoutes()
@@ -61,10 +66,10 @@ std::map<std::string, Route&>	ServConfig::getRoutes()
 	return (this->_routes);
 }
 
-// [ A FAIRE ] Return the good path of the error page
+// [ A FAIRE ] Return the good path of the error page : creer fonction get deuis code class
 std::string		ServConfig::getErrorPage(int code)
 {
-
+	this->_errors._errPages[code];
 }
 
 /////////////////
@@ -200,9 +205,7 @@ long long int ServConfig::setSize(std::string size)
 		return (nbr);
 	}
 	else
-	{
 		return (nbr = atol(size.c_str()));
-	}
 }
 
 // Chek if the input in body size is valid
@@ -279,37 +282,35 @@ int ServConfig::IndexServer(std::vector<ServConfig> servers, std::string serverN
 }
 
 // Remplis le serveur mis en arguments avec le reste du file
-void ServConfig::fillServer(ServConfig &server, std::string line, std::ifstream &file)
+void ServConfig::fillServer(std::string line, std::ifstream &file)
 {
 	// Continue de lire le fichier jusqu'au prochain []
-    while (std::getline(file, line))
+    while (std::getline(file, line) && line[0] != '[')
 	{
 		if (line.empty())
 			continue;
-		// Faire la liste de toutes les variables du serveur
-		// Si une existe deja : ERROR
 		if (!line.find("port = "))
-			server.setPort(line.substr(7));
+			this->setPort(line.substr(7));
 		else if (!line.find("host = "))
-			server.setHost(line.substr(7));
+			this->setHost(line.substr(7));
 		else if (!line.find("name = "))
-			server.setName(line.substr(7));
+			this->setName(line.substr(7));
 		else if (!line.find("default_page = "))
-			server.setDefaultPage(line.substr(15));
+			this->setDefaultPage(line.substr(15));
 		else if (!line.find("max_body_size = "))
 		{
 			int ibodySize = BodySizeChecker(line.substr(16));
-			server.setMaxBodySize(ibodySize);
+			this->setMaxBodySize(ibodySize);
 		}
 		else if (!line.find("default = "))
-			server.setIsDefault(line.substr(10));
+			this->setIsDefault(line.substr(10));
 		else if (!line.find("cookies = "))
 		{
 			int icookies = setBool(line.substr(10));
-			server.setCookies(icookies);
+			this->setCookies(icookies);
 		}
 		else if (!line.find("default_error_page = "))
-			server.setDefaultErrorPage(line.substr(21));
+			this->setDefaultErrorPage(line.substr(21));
 		else
 			CerrExit("[ ERROR ] Invalid server line: ", line);
     }
@@ -321,7 +322,7 @@ void ServConfig::createAndFillServer(std::vector<ServConfig> server, std::string
 {
 	ServConfig newServer;
 	newServer.setName(ExtractServerName(line));
-	fillServer(newServer, line, file);
+	newServer.fillServer(line, file);
 	server.push_back(newServer);
 }
 
@@ -334,35 +335,13 @@ void ServConfig::RegularServerTreatment(std::vector<ServConfig> servers, std::st
 		CerrExit("[ ERROR ] Le nom du serveur est vide... :", line);
 	// Si le serveur est deja declare et que l'on est dans la main config
     if (ServerNameExists(servers, serverName))
-		fillServer(servers[IndexServer(servers, serverName)], line, file); // Remplir les infos dans le serveur deja existant
+		servers[IndexServer(servers, serverName)].fillServer(line, file); // Remplir les infos dans le serveur deja existant
 	else
 		createAndFillServer(servers, line, file); // Créer puis remplir les infos dans un new serveur
 }
 
-// Gere les cas [NOM_SERVER:OPTION] / [NOM_SERVER:OPTION:OPTION]
-void	ServConfig::ServerOptionTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file)
-{
-	// Si un seul double point
-	if (CountOccurrences(line, ':') == 1)
-	{
-        std::string option =  line.substr(line.find(':'), line.length());
-		if (option == "ERROR" || option == "ROUTES")
-			setRoute(file, line);
-		else
-			CerrExit("[ ERROR ] Invalid server option: ", option);
-	}
-	else // Si deux doubles points
-	{
-		std::string option =  line.substr(line.find(':'), line.length());
-		if (option.substr(0, 6) == "ROUTES" || option.substr(0, 5) == "ERROR")
-			setRoute(file, line);
-		else
-			CerrExit("[ ERROR ] Invalid server option: ", option);
-	}
-}
-
 // Traitement route
-void	ServConfig::setRoute(std::fstream &file, std::string &line)
+void	ServConfig::setRoute(std::ifstream &file, std::string &line)
 {
 	std::string		key;
 	std::string		value;
@@ -421,6 +400,28 @@ void	ServConfig::setRoute(std::fstream &file, std::string &line)
 	}
 } 
 
+// Gere les cas [NOM_SERVER:OPTION] / [NOM_SERVER:OPTION:OPTION]
+void	ServConfig::ServerOptionTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file)
+{
+	// Si un seul double point
+	if (CountOccurrences(line, ':') == 1)
+	{
+        std::string option =  line.substr(line.find(':'), line.length());
+		if (option == "ERROR" || option == "ROUTES")
+			setRoute(file, line);
+		else
+			CerrExit("[ ERROR ] Invalid server option: ", option);
+	}
+	else // Si deux doubles points
+	{
+		std::string option =  line.substr(line.find(':'), line.length());
+		if (option.substr(0, 6) == "ROUTES" || option.substr(0, 5) == "ERROR")
+			setRoute(file, line);
+		else
+			CerrExit("[ ERROR ] Invalid server option: ", option);
+	}
+}
+
 // Tu recois le debut d'un nouveau block de config
 void ServConfig::BeginBlockConfig(std::string line, std::ifstream &file, std::vector<ServConfig>	servers)
 {
@@ -439,7 +440,6 @@ void ServConfig::BeginBlockConfig(std::string line, std::ifstream &file, std::ve
 }
 
 // Args: 	FileName
-//			Map Sever Config
 std::vector<ServConfig>	ServConfig::ServerParsing(char *filename)
 {
 	std::vector<ServConfig>	servers;

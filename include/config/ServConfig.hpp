@@ -85,13 +85,13 @@ class ServConfig
 		std::string 				ExtractServerName(const std::string& line);
 		bool						ServerNameExists(std::vector<ServConfig> servers, std::string serverName);
 		int 						IndexServer(std::vector<ServConfig> servers, std::string serverName);
-		void						fillServer(ServConfig &server, std::string line, std::ifstream &file);
+		void						fillServer(std::string line, std::ifstream &file);
 		void						createAndFillServer(std::vector<ServConfig> server, std::string line, std::ifstream &file);
 		void						RegularServerTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file);
 		void						ServerOptionTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file);
 		void 						BeginBlockConfig(std::string line, std::ifstream &file, std::vector<ServConfig>	servers);
 		std::vector<ServConfig>		ServerParsing(char *filename);
-		void						setRoute(std::fstream &file, std::string &line);
+		void						setRoute(std::ifstream &file, std::string &line);
 
 	private:
 		std::string						_id;
