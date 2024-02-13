@@ -15,9 +15,9 @@ class ServConfig
 		// Constructors and destructor //
 		/////////////////////////////////
 
-		ServConfig();
+		ServConfig() {};
 		ServConfig(ServConfig const &src) = delete;
-		~ServConfig();
+		~ServConfig() {};
 
 		///////////////////////
 		// operatos overload //
