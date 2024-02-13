@@ -119,7 +119,7 @@ void	ServConfig::addRoute(Route &route)
 
 void	ServConfig::setDefaultErrorPage(std::string error)
 {
-	 this->_defaultErrorPage = error;
+	this->_defaultErrorPage = error;
 }
 
 // [ A MODIF ] c'est une map 
@@ -233,13 +233,9 @@ static bool setBool(std::string boolean)
 	bool value;
 
 	if (!strcmp(boolean.c_str(), "FALSE") || !strcmp(boolean.c_str(), "false"))
-	{
 		return (value = false);
-	}
 	else if (!strcmp(boolean.c_str(), "TRUE") || !strcmp(boolean.c_str(), "true"))
-	{
 		return (value = true);
-	}
 	else
 		CerrExit("Error: bad boolean type: ", boolean);
 	return (0);
@@ -247,6 +243,8 @@ static bool setBool(std::string boolean)
 
 // ---------------------------- [ MAIN FUNCTIONS FOR PARSING ] -------------------------------- //
 
+// Renvoie le nom du serveur entre crochets
+// NULL si les crochets ne sont pas complets
 std::string ExtractServerName(const std::string& line) {
     std::size_t start = line.find("[");
     std::size_t end = line.find("]", start);
@@ -285,7 +283,7 @@ static void fillServer(ServConfig &server, std::string line, std::ifstream &file
 	{
 		if (line.empty())
 			continue;
-		// faire la liste de toutes les variables du serveur
+		// Faire la liste de toutes les variables du serveur
 		// Si une existe deja : ERROR
 		if (!line.find("port = "))
 			server.setPort(line.substr(7));
@@ -308,13 +306,20 @@ static void fillServer(ServConfig &server, std::string line, std::ifstream &file
 			server.setCookies(icookies);
 		}
 		else if (!line.find("default_error_page = "))
-		{
 			server.setDefaultErrorPage(line.substr(21));
-		}
 		else
 			CerrExit("[ ERROR ] Invalid server line: ", line);
     }
     file.close();
+}
+
+// Le serveur n'existe pas, on le cree
+static void createAndFillServer(std::vector<ServConfig> server, std::string line, std::ifstream &file)
+{
+	ServConfig newServer;
+	newServer.setName(ExtractServerName(line));
+	fillServer(newServer, line, file);
+	server.push_back(newServer);
 }
 
 // Gere les cas [NOM_SERVER]
@@ -326,15 +331,33 @@ static void RegularServerTreatment(std::vector<ServConfig> servers, std::string 
 		CerrExit("[ ERROR ] Le nom du serveur est vide... :", line);
 	// Si le serveur est deja declare et que l'on est dans la main config
     if (ServerNameExists(servers, serverName))
-		fillServer(servers[IndexServer(servers, serverName)], line, file); // [ A CREER ] remplir les infos dans le serveur deja existant
+		fillServer(servers[IndexServer(servers, serverName)], line, file); // Remplir les infos dans le serveur deja existant
 	else
-		createAndFillServer(); // [ A CREER ] remplir les infos dans le serveur deja existant
+		createAndFillServer(servers, line, file); // Créer puis remplir les infos dans un new serveur
 }
 
-// Gere les cas [NOM_SERVER:OPTION] / [NOM_SERVER:OPTION:OPTION]
+// Gere les cas [NOM_SERVER:OPTION] / [NOM_SERVER:OPTION:OPTION] ---- INCOMPLETE ----
 static void	ServerOptionTreatment(std::vector<ServConfig> servers, std::string line, std::ifstream &file)
 {
-
+	// Si un seul double point
+	if (CountOccurrences(line, ':') == 1)
+	{
+        std::string option =  line.substr(line.find(':'), line.length());
+		if (option == "ERROR" || option == "ROUTES")
+			// [ A FAIRE ] Traiter les singles options ---- INCOMPLETE ----
+		else
+			CerrExit("[ ERROR ] Invalid server option: ", option);
+	}
+	else // Si deux doubles points
+	{
+		std::string option =  line.substr(line.find(':'), line.length());
+		if (option.substr(0, 6) == "ROUTES" || option.substr(0, 5) == "ERROR")
+		{
+			option =  line.substr(line.find(':'), line.length()); // Recupere la deuxieme option
+		}
+		else
+			CerrExit("[ ERROR ] Invalid server option: ", option);
+	}
 }
 
 // Tu recois le debut d'un nouveau block de config
