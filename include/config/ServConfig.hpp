@@ -6,29 +6,29 @@
 #include "Codes.hpp"
 #include "Route.hpp"
 
-//class to store the subserver configuration
-//also used to store the socket fd of the subserver
+// class to store the subserver configuration
+// also used to store the socket fd of the subserver
 class ServConfig
 {
 	public:
-		///////////////////////////////
-		//Constructors and destructor//
-		///////////////////////////////
+		/////////////////////////////////
+		// Constructors and destructor //
+		/////////////////////////////////
 
 		ServConfig();
 		ServConfig(ServConfig const &src) = delete;
 		~ServConfig();
 
-		/////////////////////
-		//operatos overload//
-		/////////////////////
+		///////////////////////
+		// operatos overload //
+		///////////////////////
 
 		friend std::ostream&			operator<<(std::ostream& os, const ServConfig& servConfig);
 		ServConfig						&operator=(ServConfig const &src) = delete;
 
-		///////////
-		//setters//
-		///////////
+		/////////////
+		// setters //
+		/////////////
 
 		void							setId(std::string id);
 		void							setName(std::string name);
@@ -46,9 +46,9 @@ class ServConfig
 		void							setMaxBodySize(int maxBodySize);
 		void							setCookies(bool cookies);
 
-		///////////
-		//getters//
-		///////////
+		/////////////
+		// getters //
+		/////////////
 
 		std::string						getId();
 		std::string						getName();
@@ -67,11 +67,11 @@ class ServConfig
 		std::map<std::string, Route&>	getRoutes();
 		std::string						getErrorPage(int code);
 
-		///////////
-		//checker//
-		///////////
+		/////////////
+		// checker //
+		/////////////
 
-		bool							isValid();
+		bool							isValid(); 
 
 	private:
 		std::string						_id;
@@ -88,7 +88,9 @@ class ServConfig
 		int								_maxBodySize;
 		bool							_cookies;
 
-		// forgots variables
+		////////////////////////
+		// forgoten variables //
+		////////////////////////
 		std::string				  		_port;
 		std::string						_host;
 		std::string						_defaultErrorPage
