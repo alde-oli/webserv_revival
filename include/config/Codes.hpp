@@ -14,9 +14,9 @@ class Codes
 		//Constructors and destructor//
 		///////////////////////////////
 
-		Error();
+		Error() {};
 		Error(Error const &src) = delete;
-		~Error();
+		~Error() {};
 
 		//////////////////////
 		//operators overload//
