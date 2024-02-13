@@ -111,10 +111,9 @@ void	ServConfig::setDefaultPage(std::string defaultPage)
 	this->_defaultPage = defaultPage;
 }
 
-// map : pas de push back ?
 void	ServConfig::addRoute(Route &route)
 {
-	this->_routes.push_back(route);
+	this->_routes[route.getId()] = route;
 }
 
 void	ServConfig::setDefaultErrorPage(std::string error)
@@ -122,7 +121,6 @@ void	ServConfig::setDefaultErrorPage(std::string error)
 	this->_defaultErrorPage = error;
 }
 
-// [ A MODIF ] c'est une map 
 void	ServConfig::setErrors(Codes &errors)
 {
 	this->_errors = errors;
@@ -156,6 +154,9 @@ ServConfig	&ServConfig::operator=(const ServConfig &other)
 		this->_errors = other._errors;
 		this->_maxBodySize = other._maxBodySize;
 		this->_cookies = other._cookies;
+		this->_port = other._port;
+		this->_host = other._host;
+		this->_defaultErrorPage = other._defaultErrorPage;
 	}
 	return *this;
 }
