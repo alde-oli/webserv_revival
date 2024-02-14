@@ -43,6 +43,11 @@ class Codes
 
 		bool						checkValidity(std::string dir);
 
+		std::string					getMsgCode(int code);
+		std::string					Msg500(int code_erreur);
+		std::string					Msg400(int code_erreur);
+		std::string					Msg300(int code_erreur);
+		std::string					Msg200(int code_erreur);
 
 	private:
 		std::map<int, std::string>	_errPages;	
