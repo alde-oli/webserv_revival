@@ -136,7 +136,7 @@ bool	Client::write(int kq)
 	updateActivity();
 
 	bool closeClient = false;
-	bool fullySent = _response.send(_clientFd.get());
+	bool fullySent = _response.deliver(_clientFd.get());
 
 	if (_response.getHeaders().find("Connection") != _response.getHeaders().end() && _response.getHeaders().find("Connection")->second == "close")
 		{_response.clear(); closeClient = true;}

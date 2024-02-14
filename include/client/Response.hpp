@@ -59,7 +59,7 @@ class Response
 		//member functions//
 		////////////////////
 
-		void				send(int socket);
+		int					deliver(int socket);
 		void				clear();
 		
 
