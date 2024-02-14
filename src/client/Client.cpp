@@ -22,11 +22,11 @@ Client::~Client()
 
 std::ostream	&operator<<(std::ostream &os, const Client &c)
 {
-	os << "--------Client identity--------" << std::endl;
+	os << "[][]#---Client identity---#[][]" << std::endl;
 	os << "Address: " << inet_ntoa(c._clientAddr.sin_addr) << ":" << ntohs(c._clientAddr.sin_port) << std::endl;
 	os << "socket fd: " << c._clientFd.get() << " | ";
 	os << "last activity: " << std::ctime(&c._lastActivity) << std::endl;
-	os << "-------------------------------" << std::endl;
+	os << "[][]#---------------------#[][]" << std::endl;
 	c._clientFd.~AutoFD();
 	return (os);
 }

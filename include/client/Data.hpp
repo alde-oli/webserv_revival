@@ -20,7 +20,6 @@ class Data
 		///////////////////////////////
 
 		Data();
-		Data(std::string contentType, std::string rawContent);
 		Data(Data const &src) = delete;
 		~Data();
 
@@ -28,25 +27,25 @@ class Data
 		//operators overload//
 		//////////////////////
 
-		Data						&operator=(Data const &src) = delete;
-		friend std::ostream			&operator<<(std::ostream &out, Data const &src);
+		Data								&operator=(Data const &src) = delete;
+		friend std::ostream					&operator<<(std::ostream &out, Data const &src);
 
 		///////////
 		//setters//
 		///////////
 
-		bool						setFiles(std::string boundary, std::string rawContent);
-		bool						setCgiArgs(std::string rawContent);
+		bool								setFiles(std::string boundary, std::string rawContent);
+		bool								setCgiArgs(std::string rawContent);
 
 		///////////
 		//getters//
 		///////////
 
-		std::vector<contentData>	getFiles();
-		std::vector<std::string>	getCgiArgs();
+		std::vector<contentData>			getFiles();
+		std::map<std::string, std::string>	getCgiArgs();
 
 	private:
-		std::vector<contentData>	_files;
+		std::vector<contentData>			_files;
 
-		std::vector<std::string>	_cgiArgs;
+		std::map<std::string, std::string>	_cgiArgs;
 };

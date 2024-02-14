@@ -32,7 +32,7 @@ Request		&Request::operator=(Request const &src)
 
 std::ostream	&operator<<(std::ostream &out, Request const &src)
 {
-	os << "------Request------" << std::endl;
+	os << "#----------Request----------#" << std::endl;
 	out << "Method: " << src._method << std::endl;
 	out << "Uri: " << src._uri << std::endl;
 	out << "HttpVersion: " << src._httpVersion << std::endl;
@@ -41,7 +41,7 @@ std::ostream	&operator<<(std::ostream &out, Request const &src)
 		out << it->first << ": " << it->second << std::endl;
 	out << "RawBody: " << src._rawBody << std::endl;
 	out << "RefinedBody: " << src._refinedBody << std::endl;
-	out << "-------------------" << std::endl;
+	out << "#---------------------------#" << std::endl;
 	return out;
 }
 
