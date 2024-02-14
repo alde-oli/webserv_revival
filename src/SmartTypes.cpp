@@ -5,7 +5,9 @@
 ///////////
 
 template <typename T>
-AutoPtr<T>::AutoPtr(T* p) : _ptr(p){}
+AutoPtr<T>::AutoPtr(T* p)
+	: _ptr(p)
+{}
 
 template <typename T>
 AutoPtr<T>::~AutoPtr()
@@ -18,14 +20,16 @@ T& AutoPtr<T>::operator*() const
 
 template <typename T>
 T* AutoPtr<T>::operator->() const
-	{return ptr;}
+	{return _ptr;}
 
 ////////////
 //AutoAPtr//
 ////////////
 
 template <typename T>
-AutoAPtr<T>::AutoAPtr(T* p) : ptr(p){}
+AutoAPtr<T>::AutoAPtr(T* p)
+	: _ptr(p)
+{}
 
 template <typename T>
 AutoAPtr<T>::~AutoAPtr()
@@ -34,16 +38,20 @@ AutoAPtr<T>::~AutoAPtr()
 
 template <typename T>
 T* AutoAPtr<T>::get() const
-	{return ptr;}
+	{return _ptr;}
 
 
 //////////
 //AutoFD//
 //////////
 
-AutoFD::AutoFD() : _fd(-1){}
+AutoFD::AutoFD()
+	: _fd(-1)
+{}
 
-AutoFD::AutoFD(int fd) : fd(_fd){}
+AutoFD::AutoFD(int fd)
+	: _fd(_fd)
+{}
 
 AutoFD::~AutoFD()
 	{if(_fd > -1) closeFD();}

@@ -9,7 +9,7 @@ class AutoPtr
 	public:
 		AutoPtr() {};
 		explicit AutoPtr(T* p = nullptr);
-		~AutoPtr() {}; 
+		~AutoPtr(); 
 
 		T&			operator*() const;
 		T*			operator->() const;
