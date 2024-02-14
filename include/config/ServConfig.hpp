@@ -2,9 +2,12 @@
 
 #include "libs.hpp"
 
-#include "SmartTypes.hpp"
 #include "Codes.hpp"
 #include "Route.hpp"
+#include "ParsingUtils.hpp"
+#include "Route.hpp"
+#include "Parser.hpp"
+#include "ParsingExec.hpp"
 
 // class to store the subserver configuration
 // also used to store the socket fd of the subserver
@@ -32,7 +35,7 @@ class ServConfig
 
 		void							setId(std::string id);
 		void							setName(std::string name);
-		void							setPort(std::string port);
+		in_port_t						setPort(const std::string &port);
 		void							setHost(std::string host);
 		void							setSocketFd(int socketFd);
 
@@ -62,9 +65,9 @@ class ServConfig
 		bool							isCookies() const;
 
 		bool							isRoute(std::string path) const;
-		Route							&getRoute(std::string path) const;
+		Route							getRoute(std::string path) const;
 
-		std::map<std::string, Route&>	getRoutes() const;
+		std::map<std::string, Route>	getRoutes() const;
 		std::string						getErrorPage(int code) const;
 
 		/////////////
@@ -77,7 +80,11 @@ class ServConfig
 		// member function //
 		/////////////////////
 		
+		void						checkValidity();
 		std::vector<ServConfig>		ServerParsing(char *filename);
+		void						setMain(std::fstream &file, std::string &line);
+		void						setError(std::fstream &file, std::string &line);
+		void						setRoute(std::fstream &file, std::string &line);
 
 	private:
 		std::string						_id;
@@ -88,7 +95,7 @@ class ServConfig
 		bool							_isDefault;
 		std::string						_defaultPage;
 
-		std::map<std::string, Route&>	_routes;
+		std::map<std::string, Route>	_routes;
 		Codes							_errors;
 
 		int								_maxBodySize;
@@ -103,3 +110,4 @@ class ServConfig
 };
 
 void 						CerrExit(const char* message, std::string precision);
+std::vector<ServConfig>		ServerParsing(char *filename);

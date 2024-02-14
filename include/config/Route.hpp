@@ -17,7 +17,6 @@ class Route
 		///////////////////////////////
 
 		Route(){};
-		Route(Route const &src) = delete;
 		~Route(){};
 
 		//////////////////////
@@ -25,7 +24,8 @@ class Route
 		//////////////////////
 
 		Route						&operator=(Route const &src);
-		friend std::ostream			&operator<<(std::ostream &out, Route const &src);
+		//friend std::ostream			&operator<<(std::ostream &out, Route const &src);
+		Route						&operator<<(Route const &src);
 
 		///////////
 		//setters//
