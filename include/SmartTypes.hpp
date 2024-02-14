@@ -1,7 +1,5 @@
 #pragma once
 
-#include "libs.hpp"
-
 template <typename T>
 //class to autodelete ptr when out of scope
 class AutoPtr
@@ -45,7 +43,7 @@ class AutoFD
 		void	set(int fd);
 		
 		int				get() const;
-		void			close();
+		void			closeFD();
 
 	private:
 		int				_fd;

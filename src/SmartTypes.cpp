@@ -1,4 +1,5 @@
 #include "../include/SmartTypes.hpp"
+#include <unistd.h>
 
 ///////////
 //AutoPtr//
@@ -33,7 +34,7 @@ AutoAPtr<T>::AutoAPtr(T* p)
 
 template <typename T>
 AutoAPtr<T>::~AutoAPtr()
-	{delete _ptr;}
+	{delete[] _ptr;}
 
 
 template <typename T>
@@ -63,5 +64,5 @@ void AutoFD::set(int fd)
 int AutoFD::get() const
 	{return _fd;}
 
-void AutoFD::close()
+void AutoFD::closeFD()
 	{if(_fd > -1) close(_fd); _fd = -1;}

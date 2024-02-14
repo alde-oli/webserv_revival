@@ -24,8 +24,8 @@ class ServConfig
 		// operatos overload //
 		///////////////////////
 
-		void						operator<<(const ServConfig& servConfig) const;
-		ServConfig					&operator=(ServConfig const &src);
+		void							operator<<(const ServConfig& servConfig) const;
+		ServConfig						&operator=(ServConfig const &src);
 
 		/////////////
 		// setters //
