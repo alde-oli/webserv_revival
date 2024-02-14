@@ -35,7 +35,7 @@ class Codes
 		// getters //
 		/////////////
 
-		const std::string					&getErrPage(int code) const;
+		const std::string			&getErrPage(int code) const;
 
 		//////////////////////
 		// member functions //

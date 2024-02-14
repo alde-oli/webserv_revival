@@ -46,7 +46,6 @@ in_addr_t	setIPv4(const std::string &addr)
 	inetAddr = inet_addr(addr.c_str());
 	if (inetAddr == INADDR_NONE)
 		CerrExit("Error: setIPv4() failed for: ", addr);
-
 	return inetAddr;
 }
 
