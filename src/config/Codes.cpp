@@ -161,13 +161,13 @@ std::string Codes::Msg200(int code_erreur)
 std::string	Codes::getMsgCode(int code)
 {
 	if (code >= 200 && code < 300)
-		return (Response::Msg200(code));
+		return (Msg200(code));
 	else if (code >= 300 && code < 400)
-		return (Response::Msg300(code));
+		return (Msg300(code));
 	else if (code >= 400 && code < 500)
-		return (Response::Msg400(code));
+		return (Msg400(code));
 	else if (code >= 500 && code < 600)
-		return (Response::Msg500(code));
+		return (Msg500(code));
 	else
 		return ("[KO] : Code inconnu");
 }
