@@ -1,12 +1,6 @@
 #pragma once
 
-#include "libs.hpp"
-
-#include "SmartTypes.hpp"
-#include "Codes.hpp"
-#include "ParsingExec.hpp"
-#include "ParsingUtils.hpp"
-#include "ServConfig.hpp"
+#include "../libs.hpp"
 
 //class to store every informations about a route
 class Route

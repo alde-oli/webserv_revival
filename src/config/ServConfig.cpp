@@ -1,4 +1,5 @@
 #include "../../include/config/ServConfig.hpp"
+#include "../../include/config/Codes.hpp"
 
 /////////////////
 // [ GETTERS ] //
@@ -153,6 +154,25 @@ void	ServConfig::setCookies(bool cookies)
 ////////////////////////
 // operators overload //
 ////////////////////////
+
+void	ServConfig::operator<<(const ServConfig& servConfig) const
+{
+	std::cout << "ID: " << servConfig._id << std::endl;
+	std::cout << "Name: " << servConfig._name << std::endl;
+	std::cout << "Addr: " << servConfig._addr.sin_addr.s_addr << std::endl;
+	std::cout << "SocketFd: " << servConfig._socketFd.get() << std::endl;
+	std::cout << "IsDefault: " << servConfig._isDefault << std::endl;
+	std::cout << "DefaultPage: " << servConfig._defaultPage << std::endl;
+	std::cout << "Routes: " << std::endl;
+	for (std::map<std::string, Route>::const_iterator it = servConfig._routes.begin(); it != servConfig._routes.end(); ++it)
+		std::cout << it->first << " " << std::endl;
+	std::cout << "Errors: " << servConfig._errors << std::endl;
+	std::cout << "MaxBodySize: " << servConfig._maxBodySize << std::endl;
+	std::cout << "Cookies: " << servConfig._cookies << std::endl;
+	std::cout << "DefaultErrorPage: " << servConfig._defaultErrorPage << std::endl;
+	std::cout << "Port: " << servConfig._port << std::endl;
+	std::cout << "Host: " << servConfig._host << std::endl;
+}
 
 ServConfig	&ServConfig::operator=(const ServConfig &other)
 {
@@ -322,7 +342,7 @@ void	ServConfig::checkValidity()
 
 
 // Main function to parse the server configuration
-std::vector<ServConfig>	ServConfig::ServerParsing(char *filename)
+std::vector<ServConfig>		ServerParsing(std::string filename)
 {
 	std::fstream file(filename);
 	
@@ -365,4 +385,14 @@ std::vector<ServConfig>	ServConfig::ServerParsing(char *filename)
 	if (hasDuplicateAddress(servers))
 		CerrExit("Error: duplicate server address", "");
 	return (servers);
+}
+
+int main(void)
+{
+    std::vector<ServConfig> servers = ServerParsing("../../config.ini");
+	for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		it->checkValidity();
+	}
+    return 0;
 }

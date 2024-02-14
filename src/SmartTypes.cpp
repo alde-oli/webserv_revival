@@ -1,4 +1,4 @@
-#include "SmartTypes.hpp"
+#include "../include/SmartTypes.hpp"
 
 ///////////
 //AutoPtr//

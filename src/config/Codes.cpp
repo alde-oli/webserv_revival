@@ -1,9 +1,9 @@
 #include "../../include/config/Codes.hpp"
-#include "../../include/config/ServConfig.hpp"
 
 Codes	&Codes::operator=(Codes const &src)
 {
 	this->_errPages = src._errPages;
+	return (*this);
 }
 
 std::ostream	&operator<<(std::ostream &out, Codes const &src)
@@ -19,10 +19,10 @@ std::ostream	&operator<<(std::ostream &out, Codes const &src)
 void	Codes::addErrPage(int code, std::string page)
 {
 	if (code < 400 || code > 599)
-		CerrExit("Error: Error code must be between 100 and 599");
+		CerrExit("Error: Error code must be between 100 and 599", "");
 	for (std::map<int, std::string>::const_iterator it = _errPages.begin(); it != _errPages.end(); ++it)
 		if (it->first == code)
-			CerrExit("Error: Error code already exists: ", code);
+			CerrExit("Error: Error code already exists: ", page);
 	_errPages[code] = page;
 }
 

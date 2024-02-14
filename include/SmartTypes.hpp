@@ -7,12 +7,10 @@ template <typename T>
 class AutoPtr
 {
 	public:
-		AutoPtr() = delete;
+		AutoPtr() {};
 		explicit AutoPtr(T* p = nullptr);
-		AutoPtr(const AutoPtr& a) = delete;
-		~AutoPtr(); 
+		~AutoPtr() {}; 
 
-		AutoPtr&	operator=(const AutoPtr& a) = delete;
 		T&			operator*() const;
 		T*			operator->() const;
 
@@ -25,14 +23,12 @@ template <typename T>
 class AutoAPtr
 {
 	public:
-		AutoAPtr() = delete;
+		AutoAPtr() {};
 		explicit AutoAPtr(T* p = nullptr);
-		AutoAPtr(const AutoAPtr& a) = delete;
+		//AutoAPtr(const AutoAPtr& a) {};
 		~AutoAPtr();
-
-		AutoAPtr&	operator=(const AutoAPtr& a) = delete;
 		
-		t*			get() const; 
+		T*			get() const; 
 
 	private:
 		T*			_ptr;
@@ -44,10 +40,7 @@ class AutoFD
 	public:
 		AutoFD();
 		explicit AutoFD(int fd);
-		AutoFD(const AutoFD& a) = delete;
 		~AutoFD();
-
-		AutoFD&			operator=(const AutoFD& a) = delete;
 
 		void	set(int fd);
 		

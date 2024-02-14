@@ -1,12 +1,12 @@
 #pragma once
 
-#include "libs.hpp"
-
+#include "../libs.hpp"
 #include "Codes.hpp"
-#include "Route.hpp"
-#include "ParsingUtils.hpp"
-#include "Route.hpp"
-#include "ParsingExec.hpp"
+#include <iostream>
+#include "../SmartTypes.hpp"
+
+class Route;
+
 
 // class to store the subserver configuration
 // also used to store the socket fd of the subserver
@@ -18,15 +18,14 @@ class ServConfig
 		/////////////////////////////////
 
 		ServConfig() {};
-		ServConfig(ServConfig const &src) = delete;
 		~ServConfig() {};
 
 		///////////////////////
 		// operatos overload //
 		///////////////////////
 
-		friend std::ostream&			operator<<(std::ostream& os, const ServConfig& servConfig);
-		ServConfig						&operator=(ServConfig const &src);
+		void						operator<<(const ServConfig& servConfig) const;
+		ServConfig					&operator=(ServConfig const &src);
 
 		/////////////
 		// setters //
@@ -73,14 +72,13 @@ class ServConfig
 		// checker //
 		/////////////
 
-		bool							isValid();
+		//bool							isValid();
 
 		/////////////////////
 		// member function //
 		/////////////////////
 		
 		void						checkValidity();
-		std::vector<ServConfig>		ServerParsing(char *filename);
 		void						setMain(std::fstream &file, std::string &line);
 		void						setError(std::fstream &file, std::string &line);
 		void						setRoute(std::fstream &file, std::string &line);
@@ -109,4 +107,6 @@ class ServConfig
 };
 
 void 						CerrExit(const char* message, std::string precision);
-std::vector<ServConfig>		ServerParsing(char *filename);
+std::vector<ServConfig>		ServerParsing(std::string filename);
+bool 						hasDuplicateAddress(const std::vector<ServConfig>&servers);
+void						setServer(std::fstream &file, std::string &line, ServConfig &server);

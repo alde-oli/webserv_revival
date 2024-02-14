@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libs.hpp"
+#include "../libs.hpp"
 
 #define DEFAULT_ERRORS "error_pages/"
 
@@ -15,7 +15,6 @@ class Codes
 		/////////////////////////////////
 
 		Codes() {};
-		Codes(Codes const &src) = delete;
 		~Codes() {};
 
 		////////////////////////

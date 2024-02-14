@@ -75,11 +75,6 @@ void	Route::setCgiExt(std::string cgiExt)
 // [ GET ] //
 /////////////
 
-std::string	Route::getPath()
-{
-	return this->_path;
-}
-
 std::string	Route::getId()
 {
 	return this->_id;

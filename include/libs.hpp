@@ -1,6 +1,4 @@
 #pragma once
-
-#include	<iostream>
 #include 	<algorithm>
 #include	<string>
 #include	<vector>
@@ -23,3 +21,14 @@
 #include	<signal.h>
 #include	<exception>
 #include	<dirent.h>
+
+#include 	"SmartTypes.hpp"
+#include	"config/ServConfig.hpp"
+#include	"config/Codes.hpp"
+#include	"config/ParsingExec.hpp"
+#include	"config/ParsingUtils.hpp"
+#include	"config/Route.hpp"
+
+
+#define LOCALHOST "127.0.0.1"
+#define EXTERNAL_IP "11.10.14.5"
