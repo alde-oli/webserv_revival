@@ -2,6 +2,12 @@
 
 #include "libs.hpp"
 
+#include "SmartTypes.hpp"
+#include "Codes.hpp"
+#include "ParsingExec.hpp"
+#include "ParsingUtils.hpp"
+#include "ServConfig.hpp"
+
 //class to store every informations about a route
 class Route
 {
@@ -75,7 +81,7 @@ class Route
 		//member functions//
 		////////////////////
 
-		void						checkValidity();
+		void						verif() const;
 
 
 	private:

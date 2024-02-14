@@ -168,3 +168,26 @@ ServConfig	&ServConfig::operator=(const ServConfig &other)
 	}
 	return *this;
 }
+
+// ------------------ [ Main functions of the class ] ------------------ //
+
+void	ServerConfig::checkValidity()
+{
+	if (_id.empty())
+		CerrExit("Error : ID is empty please insert a valid ID", "");
+	else if (_serverName.empty())
+		CerrExit("Error : ServerName is empty please insert a valid ServerName", "");
+	else if (_defaultPage.empty())
+		CerrExit("Error : DefaultPage is empty please insert a valid DefaultPage", "");
+	else if (_maxBodySize <= 0)
+		CerrExit("Error : MaxBodySize is empty please insert a valid MaxBodySize", "");
+	if (isLocalOrExternal(_serverAddr) == false)
+		CerrExit("Error : ServerAddr is not valid please insert a valid ServerAddr", "");
+	
+	std::map<std::string, Route>::iterator it;
+
+    for (it = _routes.begin(); it != _routes.end(); ++it)
+	{
+		it->second.verif();
+    }
+}
