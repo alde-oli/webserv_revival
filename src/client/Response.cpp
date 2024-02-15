@@ -47,6 +47,9 @@ std::ostream	&operator<<(std::ostream &os, Response const &src)
 void	Response::setCode(int code)
 	{_code = code;}
 
+void	Response::setCodes(Codes codes)
+	{_codes = codes;}
+
 void	Response::setKeepAlive(bool keepAlive)
 	{_keepAlive = keepAlive;}
 
@@ -96,7 +99,17 @@ std::string	Response::getContent()
 
 int	Response::deliver(int socket)
 {
-	std::string response = "HTTP/1.1 " + std::to_string(_code) + " " + _statusCodes[_code] + "\r\n";
+	std::string response = "HTTP/1.1 " + std::to_string(_code) + " " + _codes.getMsgCode(_code) + "\r\n";
+	if (_code > 399)
+	{
+		std::string content = _codes.getErrPage(_code);
+		response += "Connection: close\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: "
+				+ std::to_string(content.size()) + "\r\n\r\n"
+				+ content;
+		int ret = send(socket, response.c_str(), response.size(), 0);
+		clear();
+		return ret;
+	}
 	response += "Connection: " + (_keepAlive ? "keep-alive" : "close") + "\r\n";
 	if (_cookie != "")
 		response += "Set-Cookie: " + _cookie + "\r\n";

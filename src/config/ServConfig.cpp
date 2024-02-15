@@ -70,6 +70,11 @@ std::map<std::string, Route>	ServConfig::getRoutes() const
 	return (this->_routes);
 }
 
+Codes	ServConfig::getCodes() const
+{
+	return (this->_errors);
+}
+
 // Return the good path of the error page
 std::string		ServConfig::getErrorPage(int code) const
 {

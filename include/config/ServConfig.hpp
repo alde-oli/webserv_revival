@@ -66,6 +66,7 @@ class ServConfig
 		Route							getRoute(std::string path) const;
 
 		std::map<std::string, Route>	getRoutes() const;
+		Codes							getCodes() const;
 		std::string						getErrorPage(int code) const;
 
 		/////////////

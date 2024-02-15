@@ -1,6 +1,7 @@
 #pragma once
 
 #include "libs.hpp"
+#include "Codes.hpp"
 
 //if we are having troubles with many connections, we can use connection: close every time
 
@@ -28,6 +29,7 @@ class Response
 		///////////
 
 		void				setCode(int code);
+		void				setCodes(Codes codes);
 		void				setKeepAlive(bool keepAlive);
 
 		void				setCookie(std::string cookie);
@@ -64,6 +66,7 @@ class Response
 		
 
 	private:
+		Codes				_codes;
 		int					_code;
 		bool				_keepAlive;
 

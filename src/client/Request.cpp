@@ -153,12 +153,13 @@ bool	Request::isHeader(std::string key)
 //handle the request and build the response
 bool	Request::handle(ServConfig &server, Response &response)
 {
+	response.setCodes(server.getCodes());
 	if (_method == "GET")
-		return RequestHandler::rGet(*this, response);
+		return RequestHandler::rGet(*this, response, server);
 	else if (_method == "POST")
-		return RequestHandler::rPost(*this, response);
+		return RequestHandler::rPost(*this, response, server);
 	else if (_method == "DELETE")
-		return RequestHandler::rDelete(*this, response);
+		return RequestHandler::rDel(*this, response, server);
 	else
 		{response.build(501, "", server); clear(); return true;}
 }
