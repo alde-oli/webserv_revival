@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../libs.hpp"
-#include "Codes.hpp"
-#include <iostream>
 #include "../SmartTypes.hpp"
+#include "Codes.hpp"
+#include "Route.hpp"
 
 class Route;
 
@@ -24,7 +24,7 @@ class ServConfig
 		// operatos overload //
 		///////////////////////
 
-		void							operator<<(const ServConfig& servConfig) const;
+		friend std::ostream				&operator<<(std::ostream &out, ServConfig const &src);					
 		ServConfig						&operator=(ServConfig const &src);
 
 		/////////////
@@ -53,7 +53,7 @@ class ServConfig
 
 		std::string						getId() const;
 		std::string						getName() const;
-		sockaddr_in						getAddr() const;
+		sockaddr_in						&getAddr() const;
 		int								getSocketFd() const;
 
 		bool							getIsDefault() const;

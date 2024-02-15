@@ -1,4 +1,4 @@
-#include "webserv.hpp"
+#include "../include/webserv.hpp"
 
 //main function to initiate the server, handle events, and manage clients
 void	ServRunner::run(std::vector<ServConfig> &servers)
@@ -10,7 +10,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 	//map to store clients bound to their fd
 	std::map<int, Client&> clients;
 	//set timeout for kqueue
-	timeval kqTimeout; kqTimeout.tv_sec = KEVENT_TO; kqTimeout.tv_usec = 0;
+	timespec kqTimeout = {0, KEVENT_TO};
 	//stores events
 	struct kevent events[MAX_EVENTS];
 	//main loop, everything happens here
@@ -41,7 +41,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 						}}} 
 			}
 			else if (events[i].flags & EVFILT_WRITE)
-				clients[events[i].ident].write(); //write client response
+				clients[events[i].ident].write(kq.get()); //write client response
 			else
 				{std::cerr << "unknown event" << std::endl;} 
 			ServRunner::checkTimeouts(clients); //check last clients activity
@@ -82,7 +82,7 @@ void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client&> &clients
 		{std::cerr << "kevent() failed" << std::endl; close(clientFd); return;}
 
 	//add client to clients map
-	clients[clientFd].Client(clientFd, clientAddr, serverFd);
+	clients[clientFd] = Client(clientFd, clientAddr, serverFd);
 }
 
 
@@ -91,7 +91,7 @@ void ServRunner::checkTimeouts(std::map<int, Client&>& clients)
 {
 	std::time_t now = std::time(NULL);
 
-	for (std
+	for (std::map<int, Client&>::iterator it = clients.begin(); it != clients.end();)
 	{
 		if (now - it->second.getLastActivity() > INACTIVE_TO)
 			clients.erase(it++);
@@ -122,7 +122,7 @@ void	ServRunner::setSockets(std::vector<ServConfig> &servers)
 		if (setsockopt(it->getSocketFd(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout)) < 0)
 			{std::cerr << "setsockopt(SO_RCVTIMEO) failed for " << it->getId() << ". Exiting program." << std::endl; exit(1);}
 		//bind and listen
-		if (bind(it->getSocketFd(), (struct sockaddr *)&it->getAddr(), sizeof(it->getAddr())) < 0)
+		if (bind(it->getSocketFd(), reinterpret_cast<const struct sockaddr*>(&it->getAddr()), sizeof(it->getAddr())) < 0)
 			{std::cerr << "bind() failed for " << it->getId() << ". exiting program"  << std::endl; exit(1);}
 		if (listen(it->getSocketFd(), 20) < 0)
 			{std::cerr << "listen() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}

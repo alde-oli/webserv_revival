@@ -1,7 +1,9 @@
 #pragma once
 
-#include "libs.hpp"
+#include "../libs.hpp"
 #include "Data.hpp"
+#include "../config/ServConfig.hpp"
+#include "Response.hpp"
 
 //Class to store the parsed request from the client
 class	Request
@@ -12,7 +14,6 @@ class	Request
 		///////////////////////////////
 
 		Request();
-		Request(Request const &src) = delete;
 		~Request();
 
 		//////////////////////
@@ -23,6 +24,12 @@ class	Request
 		friend std::ostream					&operator<<(std::ostream &out, Request const &src);
 		std::string							operator[](std::string key);
 
+		///////////
+		//getters//
+		///////////
+
+		Data								&getBody();
+
 		////////////////////
 		//member functions//
 		////////////////////
@@ -30,6 +37,7 @@ class	Request
 		bool								buildHeader(std::string rawHeader);
 		bool								buildBody(std::string rawBody);
 		bool								isHeader(std::string key);
+		void								setCgiArgs(std::string key);
 		bool								handle(ServConfig &server, Response &response);
 		void								clear();
 

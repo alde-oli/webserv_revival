@@ -1,4 +1,6 @@
-#include "webserv.hpp"
+#include "../include/webserv.hpp"
+#include "../include/config/ServConfig.hpp"
+#include "../include/ServRunner.hpp"
 
 int main(int argc, char **argv)
 {
@@ -6,11 +8,11 @@ int main(int argc, char **argv)
 	if (argc > 2)
 		{std::cerr << "Usage: ./webserv [config_file.ini]" << std::endl; return 1;}
 	else if (argc == 1)
-		servers = Parser::parseConfig("defaultConfig.ini");
+		servers = ServerParsing("defaultConfig.ini");
 	else
-		servers = Parser::parseConfig(argv[1]);
+		servers = ServerParsing(argv[1]);
 
-	if (Parser::checkValidity(servers) == false)
+	if (checkValidity(servers) == false)
 		{std::cerr << "Critical configuration error: Exiting program" << std::endl; return 1;}
 
 	ServRunner::run(servers);

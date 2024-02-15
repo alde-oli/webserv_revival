@@ -1,5 +1,8 @@
-#include "Client.hpp"
-#include "webserv.hpp"
+#include "../../include/client/Client.hpp"
+#include "../../include/config/ServConfig.hpp"
+#include "../../include/client/Request.hpp"
+#include "../../include/client/Response.hpp"
+#include "../../include/webserv.hpp"
 
 
 //////////////////////////////
@@ -140,7 +143,7 @@ bool	Client::write(int kq)
 
 	if (_response.getHeaders().find("Connection") != _response.getHeaders().end() && _response.getHeaders().find("Connection")->second == "close")
 		{_response.clear(); closeClient = true;}
-	if (fullySent = true)//get ready to handle next interaction
+	if (fullySent )//get ready to handle next interaction
 	{
 		_response.clear();
 		if (unsetWriteEvent(kq))

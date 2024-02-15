@@ -1,8 +1,8 @@
 #pragma once
 
-#include "libs.hpp"
+#include "../libs.hpp"
 
-#include "SmartTypes.hpp"
+#include "../SmartTypes.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 
@@ -13,16 +13,14 @@ class Client
 		///////////////////////////////
 		//Constructors and destructor//
 		///////////////////////////////
-		Client() = delete;
+		Client(){};
 		Client(int clientFd, sockaddr_in ClientAddr, int serverFd);
-		Client(const Client& c) = delete;
 		~Client();
 
 		//////////////////////
 		//operators overload//
 		//////////////////////
 
-		Client&					operator=(const Client& c) = delete;
 		friend std::ostream&	operator<<(std::ostream& os, const Client& c);
 
 		///////////

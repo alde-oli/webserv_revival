@@ -1,5 +1,6 @@
 #include "../../include/config/ServConfig.hpp"
-#include "../../include/config/Codes.hpp"
+#include "../../include/config/ParsingUtils.hpp"
+#include "../../include/config/ParsingExec.hpp"
 
 /////////////////
 // [ GETTERS ] //
@@ -15,7 +16,7 @@ std::string	ServConfig::getId() const
 	return (this->_id);
 }
 
-sockaddr_in	ServConfig::getAddr() const
+sockaddr_in	&ServConfig::getAddr() const
 {
 	return (this->_addr);
 }
@@ -160,23 +161,25 @@ void	ServConfig::setCookies(bool cookies)
 // operators overload //
 ////////////////////////
 
-void	ServConfig::operator<<(const ServConfig& servConfig) const
+std::ostream	&operator<<(std::ostream &out, ServConfig const &src)
 {
-	std::cout << "ID: " << servConfig._id << std::endl;
-	std::cout << "Name: " << servConfig._name << std::endl;
-	std::cout << "Addr: " << servConfig._addr.sin_addr.s_addr << std::endl;
-	std::cout << "SocketFd: " << servConfig._socketFd.get() << std::endl;
-	std::cout << "IsDefault: " << servConfig._isDefault << std::endl;
-	std::cout << "DefaultPage: " << servConfig._defaultPage << std::endl;
-	std::cout << "Routes: " << std::endl;
-	for (std::map<std::string, Route>::const_iterator it = servConfig._routes.begin(); it != servConfig._routes.end(); ++it)
-		std::cout << it->first << " " << std::endl;
-	std::cout << "Errors: " << servConfig._errors << std::endl;
-	std::cout << "MaxBodySize: " << servConfig._maxBodySize << std::endl;
-	std::cout << "Cookies: " << servConfig._cookies << std::endl;
-	std::cout << "DefaultErrorPage: " << servConfig._defaultErrorPage << std::endl;
-	std::cout << "Port: " << servConfig._port << std::endl;
-	std::cout << "Host: " << servConfig._host << std::endl;
+	out << "Server ID: " << src.getId() << std::endl;
+	out << "Server Name: " << src.getName() << std::endl;
+	out << "Server Address: " << inet_ntoa(src.getAddr().sin_addr) << ":" << ntohs(src.getAddr().sin_port) << std::endl;
+	out << "Server Socket: " << src.getSocketFd() << std::endl;
+	out << "Is Default: " << src.getIsDefault() << std::endl;
+	out << "Default Page: " << src.getDefaultPage() << std::endl;
+	out << "Max Body Size: " << src.getMaxBodySize() << std::endl;
+	out << "Cookies: " << src.isCookies() << std::endl;
+	out << "Routes: " << std::endl;
+	std::map<std::string, Route> routes = src.getRoutes();
+	for (std::map<std::string, Route>::iterator it = routes.begin(); it != routes.end(); ++it)
+	{
+		out << it->second << std::endl;
+	}
+	out << "Errors: " << std::endl;
+	out << src.getCodes() << std::endl;
+	return out;
 }
 
 ServConfig	&ServConfig::operator=(const ServConfig &other)
@@ -219,8 +222,8 @@ void	ServConfig::setRoute(std::fstream &file, std::string &line)
 	{
 		if (line.empty())
 			continue ;
-		else if (!line.find("route = "))
-			route.setPath(line.substr(8));
+		else if (!line.find("path = "))
+			route.setPath(line.substr(7));
 		else if (!line.find("root = "))
 			route.setRoot(line.substr(7));
 		else if (!line.find("default_page = "))
@@ -392,12 +395,13 @@ std::vector<ServConfig>		ServerParsing(std::string filename)
 	return (servers);
 }
 
-int main(void)
-{
-    std::vector<ServConfig> servers = ServerParsing("../../config.ini");
-	for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); ++it)
-	{
-		it->checkValidity();
-	}
-    return 0;
-}
+// int main(void)
+// {
+//     std::vector<ServConfig> servers = ServerParsing("config/config.ini");
+// 	for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); ++it)
+// 	{
+// 		it->checkValidity();
+// 		std::cout << *it << std::endl;
+// 	}
+//     return 0;
+// }

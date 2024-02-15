@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libs.hpp"
+#include "../libs.hpp"
 
 //struct to store a single file and it's name + extension
 struct contentData
@@ -20,14 +20,13 @@ class Data
 		///////////////////////////////
 
 		Data();
-		Data(Data const &src) = delete;
 		~Data();
 
 		//////////////////////
 		//operators overload//
 		//////////////////////
 
-		Data								&operator=(Data const &src) = delete;
+		Data								&operator=(Data const &src);
 		friend std::ostream					&operator<<(std::ostream &out, Data const &src);
 
 		///////////
@@ -48,4 +47,4 @@ class Data
 		std::vector<contentData>			_files;
 
 		std::map<std::string, std::string>	_cgiArgs;
-};
+};	

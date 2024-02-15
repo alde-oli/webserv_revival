@@ -1,4 +1,4 @@
-#include "Response.hpp"
+#include "../../include/client/Response.hpp"
 
 ///////////////////////////////
 //Constructors and destructor//
@@ -37,7 +37,7 @@ std::ostream	&operator<<(std::ostream &os, Response const &src)
 	os << "Content-Type: " << src._contentType << std::endl;
 	os << "Content-Length: " << src._contentLength << std::endl;
 	os << "Content: "<< std::endl << src._content << std::endl;
-	return out;
+	return os;
 }
 
 ///////////
@@ -56,14 +56,21 @@ void	Response::setKeepAlive(bool keepAlive)
 void	Response::setCookie(std::string cookie)
 	{_cookie = cookie;}
 
+void	Response::setLocation(std::string location)
+	{_location = location;}
+
 void	Response::setContentDisposition(std::string contentDisposition)
 	{_contentDisposition = contentDisposition;}
 
 void	Response::setContentType(std::string contentType)
 	{_contentType = contentType;}
 
-void	Response::setContentLength(std::string contentLength)
-	{_contentLength = contentLength;}
+void	Response::setContentLength(int contentLength)
+{
+	std::stringstream ss;
+	ss << contentLength;
+	_contentLength = ss.str();
+}
 
 void	Response::setContent(std::string content)
 	{_content = content;}
@@ -80,6 +87,9 @@ bool	Response::getKeepAlive()
 
 std::string	Response::getCookie()
 	{return _cookie;}
+
+std::string	Response::getLocation()
+	{return _location;}
 
 std::string	Response::getContentDisposition()
 	{return _contentDisposition;}
@@ -110,9 +120,15 @@ int	Response::deliver(int socket)
 		clear();
 		return ret;
 	}
-	response += "Connection: " + (_keepAlive ? "keep-alive" : "close") + "\r\n";
+	response += "Connection: ";
+	if (_keepAlive)
+		response += "keep-alive\r\n";
+	else
+		response += "close\r\n";
 	if (_cookie != "")
 		response += "Set-Cookie: " + _cookie + "\r\n";
+	if (_location != "")
+		response += "Location: " + _location + "\r\n";
 	if (_contentDisposition != "")
 		response += "Content-Disposition: " + _contentDisposition + "\r\n";
 	if (_contentType != "")

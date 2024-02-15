@@ -1,4 +1,16 @@
 #include "../../include/config/Route.hpp"
+#include "../../include/config/ParsingUtils.hpp"
+#include "../../include/config/ParsingExec.hpp"
+
+#include <iostream>
+
+///////////////////////////////
+//Constructors and destructor//
+///////////////////////////////
+
+Route::Route()
+	: _id(""), _path(""), _root(""), _defaultPage(""), _methods(), _isRedir(false), _redirDir(""), _listing(false), _isDownload(false), _downloadDir(""), _isUpload(false), _forceUpload(false), _cgiExt()
+{}
 
 /////////////
 // [ SET ] //
@@ -166,28 +178,28 @@ bool	Route::isCgi(std::string path)
 /// [ SURCHARGE ] ///
 /////////////////////
 
-Route	&Route::operator<<(Route const &src)
+std::ostream	&operator<<(std::ostream &out, Route const &src)
 {
-	std::cout << "ID: " << src._id << std::endl;
-	std::cout << "Path: " << src._path << std::endl;
-	std::cout << "Root: " << src._root << std::endl;
-	std::cout << "DefaultPage: " << src._defaultPage << std::endl;
-	std::cout << "Methods: ";
+	out << "Route ID: " << src._id << std::endl;
+	out << "Route: " << src._path << std::endl;
+	out << "Root: " << src._root << std::endl;
+	out << "DefaultPage: " << src._defaultPage << std::endl;
+	out << "Methods: ";
 	for (std::vector<std::string>::const_iterator it = src._methods.begin(); it != src._methods.end(); it++)
-		std::cout << *it << " ";
-	std::cout << std::endl;
-	std::cout << "IsRedir: " << src._isRedir << std::endl;
-	std::cout << "RedirDir: " << src._redirDir << std::endl;
-	std::cout << "Listing: " << src._listing << std::endl;
-	std::cout << "IsDownload: " << src._isDownload << std::endl;
-	std::cout << "DownloadDir: " << src._downloadDir << std::endl;
-	std::cout << "IsUpload: " << src._isUpload << std::endl;
-	std::cout << "ForceUpload: " << src._forceUpload << std::endl;
-	std::cout << "CgiExt: ";
+		out << *it << " ";
+	out << std::endl;
+	out << "IsRedir: " << src._isRedir << std::endl;
+	out << "RedirDir: " << src._redirDir << std::endl;
+	out << "Listing: " << src._listing << std::endl;
+	out << "IsDownload: " << src._isDownload << std::endl;
+	out << "DownloadDir: " << src._downloadDir << std::endl;
+	out << "IsUpload: " << src._isUpload << std::endl;
+	out << "ForceUpload: " << src._forceUpload << std::endl;
+	out << "CgiExt: ";
 	for (std::vector<std::string>::const_iterator it = src._cgiExt.begin(); it != src._cgiExt.end(); it++)
-		std::cout << *it << " ";
-	std::cout << std::endl;
-	return *this;
+		out << *it << " ";
+	out << std::endl;
+	return out;
 }
 
 Route	&Route::operator=(Route const &src)
@@ -222,8 +234,6 @@ void	Route::verif() const
 		CerrExit("Route is empty please insert a valid Route", "");
 	else if (_root.empty())
 		CerrExit("Root is empty please insert a valid Root", "");
-	else if (_defaultPage.empty())
-		CerrExit("Page is empty please insert a valid Page", "");
 	else if (_methods.empty())
 		CerrExit("Methods are empty please insert valids Methods", "");
 	else if (_isDownload && _downloadDir.empty())

@@ -10,7 +10,7 @@ class Route
 		//Constructors and destructor//
 		///////////////////////////////
 
-		Route(){};
+		Route();
 		~Route(){};
 
 		//////////////////////
@@ -18,8 +18,7 @@ class Route
 		//////////////////////
 
 		Route						&operator=(Route const &src);
-		//friend std::ostream		&operator<<(std::ostream &out, Route const &src);
-		Route						&operator<<(Route const &src);
+		friend std::ostream		&operator<<(std::ostream &out, Route const &src);
 
 		///////////
 		//setters//

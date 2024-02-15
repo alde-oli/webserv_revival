@@ -1,7 +1,7 @@
 #pragma once
 
-#include "libs.hpp"
-#include "Codes.hpp"
+#include "../libs.hpp"
+#include "../config/Codes.hpp"
 
 //if we are having troubles with many connections, we can use connection: close every time
 
@@ -14,7 +14,6 @@ class Response
 		///////////////////////////////
 
 		Response();
-		Response(Response const &src) = delete;
 		~Response();
 
 		//////////////////////
@@ -34,9 +33,11 @@ class Response
 
 		void				setCookie(std::string cookie);
 
+		void				setLocation(std::string location);
+
 		void				setContentDisposition(std::string contentDisposition);
 		void				setContentType(std::string contentType);
-		void				setContentLength(std::string contentLength);
+		void				setContentLength(int contentLength);
 
 		void				setContent(std::string content);
 		
@@ -50,6 +51,8 @@ class Response
 		bool				getKeepAlive();
 
 		std::string			getCookie();
+
+		std::string			getLocation();
 
 		std::string			getContentDisposition();
 		std::string			getContentType();
@@ -72,13 +75,15 @@ class Response
 
 		std::string			_cookie;
 
+		std::string			_location;
+
 		std::string			_contentDisposition;
 		std::string			_contentType;
 		std::string			_contentLength;
 
 		std::string			_content;
 		
-}
+};
 
 //response examples:
 

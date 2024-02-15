@@ -1,4 +1,5 @@
 #include "../../include/config/Codes.hpp"
+#include "../../include/config/ParsingUtils.hpp"
 
 Codes	&Codes::operator=(Codes const &src)
 {

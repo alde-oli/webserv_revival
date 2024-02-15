@@ -2,14 +2,13 @@
 
 #include "libs.hpp"
 #include "SmartTypes.hpp"
-#include "ServConfig.hpp"
-#include "Route.hpp"
-#include "Codes.hpp"
-#include "Parser.hpp"
-#include "Data.hpp"
-#include "request.hpp"
-#include "Response.hpp"
-#include "Client.hpp"
+#include "config/ServConfig.hpp"
+#include "config/Route.hpp"
+#include "config/Codes.hpp"
+#include "client/Data.hpp"
+#include "client/Request.hpp"
+#include "client/Response.hpp"
+#include "client/Client.hpp"
 #include "ServRunner.hpp"
 
 //timeouts
@@ -25,3 +24,6 @@
 //memory|perfs limits
 #define MAX_EVENTS 255
 #define BUF_SIZE 2048
+
+#define LOCALHOST "127.0.0.1"
+#define EXTERNAL_IP "11.10.14.5"

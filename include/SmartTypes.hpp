@@ -1,12 +1,14 @@
 #pragma once
 
+#include "libs.hpp"
+
 template <typename T>
 //class to autodelete ptr when out of scope
 class AutoPtr
 {
 	public:
 		AutoPtr() {};
-		explicit AutoPtr(T* p = nullptr);
+		explicit AutoPtr(T* p = NULL);
 		~AutoPtr(); 
 
 		T&			operator*() const;
@@ -22,7 +24,7 @@ class AutoAPtr
 {
 	public:
 		AutoAPtr() {};
-		explicit AutoAPtr(T* p = nullptr);
+		explicit AutoAPtr(T* p = NULL);
 		//AutoAPtr(const AutoAPtr& a) {};
 		~AutoAPtr();
 		

@@ -51,7 +51,7 @@ AutoFD::AutoFD()
 {}
 
 AutoFD::AutoFD(int fd)
-	: _fd(_fd)
+	: _fd(fd)
 {}
 
 AutoFD::~AutoFD()

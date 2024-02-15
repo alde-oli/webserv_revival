@@ -1,4 +1,4 @@
-#include "Data.hpp"
+#include "../../include/client/Data.hpp"
 
 ///////////////////////////////
 //Constructors and destructor//
@@ -15,23 +15,33 @@ Data::~Data()
 //operators overload//
 //////////////////////
 
+Data	&Data::operator=(Data const &src)
+{
+	if (this != &src)
+	{
+		_files = src._files;
+		_cgiArgs = src._cgiArgs;
+	}
+	return *this;
+}
+
 std::ostream	&operator<<(std::ostream &out, Data const &src)
 {
 	out << "-----------Data------------" << std::endl;
-	if (_files.size() > 0)
+	if (src._files.size() > 0)
 	{
 		out << "Files: " << std::endl;
-		for (auto it = src._files.begin(); it != src._files.end(); it++)
+		for (std::vector<contentData>::iterator it = src._files.begin(); it != src._files.end(); it++)
 		{
 			out << "Name: " << it->_fileName << std::endl;
 			out << "Type: " << it->_contentType << std::endl;
 			out << "Length: " << it->_data.size() << std::endl;
 	}	}
-	else if (_cgiArgs.size() > 0)
+	else if (src._cgiArgs.size() > 0)
 	{
 		out << "CgiArgs: " << std::endl;
-		for (auto it = src._cgiArgs.begin(); it != src._cgiArgs.end(); it++)
-			out << *it << std::endl;
+		for (std::map<std::string, std::string>::iterator it = src._cgiArgs.begin(); it != src._cgiArgs.end(); it++)
+			out << it->first << ": " << it->second << std::endl;
 	}
 	return out;
 }
@@ -89,7 +99,13 @@ bool Data::setFiles(std::string boundary, std::string rawContent)
 		if (fileName.empty() || contentType.empty())
 			return true;
 		else
-			_files.push_back(contentData{fileName, contentType, dataPart});
+		{
+			contentData data;
+			data._fileName = fileName;
+			data._contentType = contentType;
+			data._data = dataPart;
+			_files.push_back(data);
+		}
 	}
 	return false;
 }
@@ -119,7 +135,7 @@ std::string urlDecode(const std::string& encoded)
 //parse body for cgi args
 bool Data::setCgiArgs(std::string rawContent)
 {
-	std::istringstream stream(queryString);
+	std::istringstream stream(rawContent);
 	std::string pair;
 
 	while (std::getline(stream, pair, '&'))

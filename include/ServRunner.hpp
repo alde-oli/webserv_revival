@@ -1,8 +1,8 @@
 #pragma once
 
 #include "libs.hpp"
-#include "ServConfig.hpp"
-#include "Client.hpp"
+#include "config/ServConfig.hpp"
+#include "client/Client.hpp"
 
 class ServRunner
 {
@@ -10,22 +10,18 @@ class ServRunner
 		///////////////////////////////
 		//Constructors and destructor//
 		///////////////////////////////
-		ServRunner() = delete;
-		ServRunner(ServRunner const &src) = delete;
-		ServRunner(ServRunner&&) = delete;
 
 		//////////////////////
 		//operators overload//
 		//////////////////////
 
-		Parser	&operator=(ServRunner const &src) = delete;
-
 		////////////////////
 		//member functions//
 		////////////////////
 
-		void	run(std::vector<ServConfig> &servers);
-		void	acceptNew(int kq, int serverFd, std::map<int, Client&> &clients);
-		void	setSockets(std::vector<ServConfig> &servers);
-		void	setKqueue(AutoFD &kq, std::vector<ServConfig> &servers);
-}
+		static void	run(std::vector<ServConfig> &servers);
+		static void	acceptNew(int kq, int serverFd, std::map<int, Client&> &clients);
+		static void	setSockets(std::vector<ServConfig> &servers);
+		static void	setKqueue(AutoFD &kq, std::vector<ServConfig> &servers);
+		static void	checkTimeouts(std::map<int, Client&> &clients);
+};

@@ -18,3 +18,12 @@ bool isLocalOrExternal(struct sockaddr_in addr)
         return true;
     return false;
 }
+
+//Check IP server
+bool checkIPServer(ServConfig server)
+{
+	std::string ipAddress = inet_ntoa(server.getAddr().sin_addr);
+	if (LOCALHOST == ipAddress || ipAddress == EXTERNAL_IP)
+		return true;
+	return false;
+}

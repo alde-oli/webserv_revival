@@ -1,4 +1,5 @@
-#include "Request.hpp"
+#include "../../include/client/Request.hpp"
+#include "../../include/client/RequestHandler.hpp"
 
 
 //////////////////////////////
@@ -32,12 +33,12 @@ Request		&Request::operator=(Request const &src)
 
 std::ostream	&operator<<(std::ostream &out, Request const &src)
 {
-	os << "#----------Request----------#" << std::endl;
+	out << "#----------Request----------#" << std::endl;
 	out << "Method: " << src._method << std::endl;
 	out << "Uri: " << src._uri << std::endl;
 	out << "HttpVersion: " << src._httpVersion << std::endl;
 	out << "Headers: " << std::endl;
-	for (auto it = src._headers.begin(); it != src._headers.end(); it++)
+	for (std::map<std::string, std::string>::const_iterator it = src._headers.begin(); it != src._headers.end(); it++)
 		out << it->first << ": " << it->second << std::endl;
 	out << "RawBody: " << src._rawBody << std::endl;
 	out << "RefinedBody: " << src._refinedBody << std::endl;
@@ -58,6 +59,13 @@ std::string	Request::operator[](std::string key)
 	else
 		return "";
 }
+
+///////////
+//getters//	
+///////////
+
+Data	&Request::getBody()
+	{return _refinedBody;}
 
 ////////////////////
 //member functions//
@@ -133,7 +141,7 @@ bool	Request::buildBody(std::string rawBody)
 					{clear(); return true;}}
 			else
 				{clear(); return true;}
-}	}	}
+}	}	return false;}
 
 //return true if the header contains the key
 bool	Request::isHeader(std::string key)
@@ -150,6 +158,10 @@ bool	Request::isHeader(std::string key)
 		return false;
 }
 
+//set the cgi args for the request
+void	Request::setCgiArgs(std::string key)
+	{_refinedBody.setCgiArgs(key);}
+
 //handle the request and build the response
 bool	Request::handle(ServConfig &server, Response &response)
 {
@@ -161,7 +173,7 @@ bool	Request::handle(ServConfig &server, Response &response)
 	else if (_method == "DELETE")
 		return RequestHandler::rDel(*this, response, server);
 	else
-		{response.build(501, "", server); clear(); return true;}
+		{response.setCode(405); return true;}
 }
 
 //clear the request
