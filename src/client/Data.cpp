@@ -31,16 +31,17 @@ std::ostream	&operator<<(std::ostream &out, Data const &src)
 	if (src._files.size() > 0)
 	{
 		out << "Files: " << std::endl;
-		for (std::vector<contentData>::iterator it = src._files.begin(); it != src._files.end(); it++)
+		for (std::vector<contentData>::const_iterator it = src._files.begin(); it != src._files.end(); it++)
 		{
 			out << "Name: " << it->_fileName << std::endl;
 			out << "Type: " << it->_contentType << std::endl;
 			out << "Length: " << it->_data.size() << std::endl;
-	}	}
+		}
+	}
 	else if (src._cgiArgs.size() > 0)
 	{
 		out << "CgiArgs: " << std::endl;
-		for (std::map<std::string, std::string>::iterator it = src._cgiArgs.begin(); it != src._cgiArgs.end(); it++)
+		for (std::map<std::string, std::string>::const_iterator it = src._cgiArgs.begin(); it != src._cgiArgs.end(); it++)
 			out << it->first << ": " << it->second << std::endl;
 	}
 	return out;

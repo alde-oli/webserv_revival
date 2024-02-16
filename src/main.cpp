@@ -12,8 +12,11 @@ int main(int argc, char **argv)
 	else
 		servers = ServerParsing(argv[1]);
 
-	if (checkValidity(servers) == false)
-		{std::cerr << "Critical configuration error: Exiting program" << std::endl; return 1;}
+	for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		it->checkValidity();
+		std::cout << "ready:" << std::endl << *it << std::endl;
+	}
 
 	ServRunner::run(servers);
 }

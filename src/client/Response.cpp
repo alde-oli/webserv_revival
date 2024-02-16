@@ -37,6 +37,7 @@ std::ostream	&operator<<(std::ostream &os, Response const &src)
 	os << "Content-Type: " << src._contentType << std::endl;
 	os << "Content-Length: " << src._contentLength << std::endl;
 	os << "Content: "<< std::endl << src._content << std::endl;
+	os << "#---------------------------#" << std::endl;
 	return os;
 }
 

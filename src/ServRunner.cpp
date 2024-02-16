@@ -8,7 +8,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 	setSockets(servers);
 	setKqueue(kq, servers);
 	//map to store clients bound to their fd
-	std::map<int, Client&> clients;
+	std::map<int, Client> clients;
 	//set timeout for kqueue
 	timespec kqTimeout = {0, KEVENT_TO};
 	//stores events
@@ -21,27 +21,30 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 			{std::cerr << "kevent() fail" << std::endl; continue;}
 		for (int i = 0; i < event; i++)
 		{
+			std::cout << "event " << events[i].filter << " of " << event;
+			std::cout << "event " << i << " of " << event;
 			if (events[i].flags & EV_EOF) //client closed connection
-				{clients.erase(events[i].ident); continue;}
+				{clients.erase(events[i].ident); std::cout << "client " << events[i].ident << " closed" << std::endl; continue;}
 			//analysing events
-			else if (events[i].flags & EVFILT_READ)
+			else if (events[i].filter == EVFILT_READ)
 			{
+				std::cout << "READ" << std::endl;
 				int newClient = 0;
 				//find out if new client or existing client then accept new client or read client requets
 				for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
-					{if (events[i].ident == it->getSocketFd())
+					{if (events[i].ident == static_cast<uintptr_t>(it->getSocketFd()))
 						{ServRunner::acceptNew(kq.get(), it->getSocketFd(), clients); newClient = 1; break;}} //accept new client
 				if (!newClient)
 					{for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
 						{if (it->getSocketFd() == clients[events[i].ident].getServFd())
 						{
 							if (clients[events[i].ident].read(*it, kq.get())) //read client request, return 1 if client needs to be closed
-								{clients.erase(events[i].ident); break;}
+								{clients.erase(events[i].ident); std::cout << "client " << events[i].ident << " closed" << std::endl; break;}
+							//clients[events[i].ident].printRequest();
 							break;
-						}}} 
-			}
-			else if (events[i].flags & EVFILT_WRITE)
-				clients[events[i].ident].write(kq.get()); //write client response
+			}	}	}	}
+			else if (events[i].filter == EVFILT_WRITE)
+				{clients[events[i].ident].write(kq.get());} //write client response
 			else
 				{std::cerr << "unknown event" << std::endl;} 
 			ServRunner::checkTimeouts(clients); //check last clients activity
@@ -49,7 +52,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 
 
 //accepts new client and adds it to the clients map
-void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client&> &clients)
+void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client> &clients)
 {
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
@@ -82,19 +85,22 @@ void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client&> &clients
 		{std::cerr << "kevent() failed" << std::endl; close(clientFd); return;}
 
 	//add client to clients map
-	clients[clientFd] = Client(clientFd, clientAddr, serverFd);
+	clients[clientFd] = Client(-1, clientAddr, serverFd);
+	clients[clientFd].setClientFd(clientFd);
+	std::cout << "new client accepted" << std::endl;
+	std::cout << clients[clientFd] << std::endl;
 }
 
 
 //checks if clients have been inactive for duration INACTIVE_TO and closes them if they have
-void ServRunner::checkTimeouts(std::map<int, Client&>& clients)
+void ServRunner::checkTimeouts(std::map<int, Client>& clients)
 {
 	std::time_t now = std::time(NULL);
 
-	for (std::map<int, Client&>::iterator it = clients.begin(); it != clients.end();)
+	for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end();)
 	{
 		if (now - it->second.getLastActivity() > INACTIVE_TO)
-			clients.erase(it++);
+			{clients.erase(it++); std::cout << "client timed out" << std::endl;}
 		else
 			++it;
 }	}

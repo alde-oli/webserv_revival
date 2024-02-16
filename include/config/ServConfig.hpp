@@ -53,7 +53,7 @@ class ServConfig
 
 		std::string						getId() const;
 		std::string						getName() const;
-		sockaddr_in						&getAddr() const;
+		const sockaddr_in				&getAddr() const;
 		int								getSocketFd() const;
 
 		bool							getIsDefault() const;

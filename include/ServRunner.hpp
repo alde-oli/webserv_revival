@@ -20,8 +20,8 @@ class ServRunner
 		////////////////////
 
 		static void	run(std::vector<ServConfig> &servers);
-		static void	acceptNew(int kq, int serverFd, std::map<int, Client&> &clients);
+		static void	acceptNew(int kq, int serverFd, std::map<int, Client> &clients);
 		static void	setSockets(std::vector<ServConfig> &servers);
 		static void	setKqueue(AutoFD &kq, std::vector<ServConfig> &servers);
-		static void	checkTimeouts(std::map<int, Client&> &clients);
+		static void	checkTimeouts(std::map<int, Client> &clients);
 };

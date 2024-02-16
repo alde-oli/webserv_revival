@@ -16,7 +16,7 @@ std::string	ServConfig::getId() const
 	return (this->_id);
 }
 
-sockaddr_in	&ServConfig::getAddr() const
+const sockaddr_in	&ServConfig::getAddr() const
 {
 	return (this->_addr);
 }
@@ -49,13 +49,10 @@ bool		ServConfig::isCookies() const
 // Verifier le chemin 
 bool		ServConfig::isRoute(std::string path) const
 {
-	DIR	*dirp;
-
-	dirp = opendir(path.c_str());
-	if (!dirp)
-		return false;
-	closedir(dirp);
-	return true;
+	std::map<std::string, Route>::const_iterator it = this->_routes.find(path);
+	if (it == this->_routes.end())
+		return (false);
+	return (true);
 }
 
 Route		ServConfig::getRoute(std::string path) const

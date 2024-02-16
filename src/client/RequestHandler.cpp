@@ -17,45 +17,94 @@ std::string getInterpreterPathForExtension(const std::string& extension)
 
 static bool rCgi(Request &request, Response &response, ServConfig &server)
 {
-	std::map<std::string, std::string> envMap = request.getBody().getCgiArgs();
-	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1);
-	Route route = server.getRoute(path);
-	std::string cgiName = request["uri"].substr(request["uri"].find_last_of('/') + 1);
-	std::string cgiPath = route.getRoot() + cgiName;
+	std::cout << "@@@@@@@@@@@@@@@@handling CGI@@@@@@@@@@@@@@@@@@" << std::endl;
+    std::map<std::string, std::string> envMap = request.getBody().getCgiArgs();
+    std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1);
+    Route route = server.getRoute(path);
+    std::string cgiName = request["uri"].substr(request["uri"].find_last_of('/') + 1, request["uri"].find_last_of('?') - request["uri"].find_last_of('/') - 1);
+    std::string cgiPath = "/Users/alde-oli/Desktop/webserv_revival/" + route.getRoot() + cgiName;
 
-	if (access(cgiPath.c_str(), X_OK) == -1)
-		{response.setCode(404); return true;}
+	std::cout << "path: " << cgiPath << std::endl;
 
-	std::string extension = cgiName.substr(cgiName.find_last_of('.') + 1);
-	std::string interpreterPath = getInterpreterPathForExtension(extension);
+	for (std::map<std::string, std::string>::iterator it = envMap.begin(); it != envMap.end(); it++)
+		std::cout << it->first << " : " << it->second << std::endl;
+	
 
-	if (interpreterPath.empty())
-		{response.setCode(500); return true;}
+    if (access(cgiPath.c_str(), X_OK) == -1) {
+        response.setCode(404);
+		std::cout << "access fail" << std::endl;
+        return true;
+    }
 
-	std::vector<char*> env;
-	for (std::map<std::string, std::string>::const_iterator it = envMap.begin(); it != envMap.end(); ++it)
-		{std::string envVar = it->first + "=" + it->second;
-		char* envCStr = new char[envVar.size() + 1];
-		std::strcpy(envCStr, envVar.c_str());
-		env.push_back(envCStr);}
-	env.push_back(NULL);
+    std::string extension = cgiName.substr(cgiName.find_last_of('.') + 1);
+    std::string interpreterPath = getInterpreterPathForExtension(extension);
 
-	const char* argv[] = { interpreterPath.c_str(), cgiPath.c_str(), NULL };
-	pid_t pid = fork();
-	if (pid == -1)
-		{response.setCode(500); return true;}
-	else if (pid == 0)
-		{execve(argv[0], const_cast<char* const*>(argv), &env[0]); exit(EXIT_FAILURE);} 
-	else
-		{int status;
-		waitpid(pid, &status, 0);
-		if (status != 0) response.setCode(500);
-		else response.setCode(200);}
-	for (size_t i = 0; i < env.size(); ++i)
-		delete[] env[i];
+    if (interpreterPath.empty()) {
+        response.setCode(500);
+		std::cout << "interpreterPath empty" << std::endl;
+        return true;
+    }
 
-	return true;
+    std::vector<char*> env;
+    for (std::map<std::string, std::string>::iterator it = envMap.begin(); it != envMap.end(); ++it) {
+        std::string envVar = it->first + "=" + it->second;
+        char* envCStr = new char[envVar.size() + 1];
+        std::strcpy(envCStr, envVar.c_str());
+        env.push_back(envCStr);
+    }
+    env.push_back(NULL);
+
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        response.setCode(500);
+		std::cout << "pipe fail" << std::endl;
+        return true;
+    }
+
+    const char* argv[] = { interpreterPath.c_str(), cgiPath.c_str(), NULL };
+    pid_t pid = fork();
+    if (pid == -1) {
+        response.setCode(500);
+        return true;
+    } else if (pid == 0) { // Child process
+        close(pipefd[0]); // Close read end, child will write
+		std::cout << "child process" << std::endl;
+        dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe write end
+        execve(argv[0], const_cast<char* const*>(argv), const_cast<char* const*>(&env[0]));
+        exit(EXIT_FAILURE); // Execve failed
+    } else { // Parent process
+        close(pipefd[1]); // Close write end, parent will read
+        char buffer[4096]; // Adjust size as necessary
+        std::string output;
+        ssize_t count;
+        while ((count = read(pipefd[0], buffer, sizeof(buffer)-1)) > 0) {
+            buffer[count] = '\0';
+            output += buffer;
+        }
+        close(pipefd[0]); // Close read end after done reading
+
+        int status;
+        waitpid(pid, &status, 0);
+        if (status != 0) {
+            response.setCode(500);
+        } else {
+            response.setCode(200);
+            // Here you can set the CGI output to the response body
+            response.setContent(output);
+			response.setContentLength(output.size());
+			response.setContentType("text/html; charset=UTF-8");
+			response.setKeepAlive(true);
+        }
+    }
+
+    for (size_t i = 0; i < env.size(); ++i) {
+        delete[] env[i];
+    }
+	std::cout << "valid request" << std::endl;
+	std::cout << response << std::endl;
+    return true;
 }
+
 
 
 static std::string	extensionType(Request &request)
@@ -89,10 +138,11 @@ static std::string	extensionType(Request &request)
 
 bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &server)
 {
+	std::cout << "handling GET" << std::endl << request << std::endl;
 	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1); //need to check it is correctly truncated
-
+	std::cout << "path: " << path << std::endl;
 	if (!server.isRoute(path))
-		{response.setCode(404); return true;}
+		{response.setCode(404); std::cout << "invalid request" << std::endl; return true;}
 	
 	Route route = server.getRoute(path);
 
@@ -104,9 +154,10 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 
 	std::vector<std::string> methods = route.getMethods();
 	if (methods.size() == 0 || std::find(methods.begin(), methods.end(), "GET") == methods.end())
-		{response.setCode(405); return true;}
+		{response.setCode(405); std::cout << "invalid request" << std::endl; return true;}
 	
 	std::string toGet = request["uri"].substr(request["uri"].find_last_of('/') + 1); // need to check it is correctly truncated
+	std::cout << "toGet: " << toGet << std::endl;
 	if (toGet.empty())
 		{if (route.isListing())
 			{response.setCode(200);
@@ -133,10 +184,12 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 			{response.setCode(404); return true;}}
 
 	std::string args = toGet.substr(toGet.find_last_of('?') + 1);
+	std::cout << "args: " << args << std::endl;
 	std::string extension = toGet.substr(toGet.find_last_of('.'), toGet.find_last_of('?') - toGet.find_last_of('.'));
+	std::cout << "extension: " << extension << std::endl;
 	if (route.isCgi(extension))
 		{request.setCgiArgs(args); return rCgi(request, response, server);}
-
+	std::cout << "not cgi" << std::endl;
 	toGet = route.getRoot() + toGet;
 	std::ifstream file(toGet, std::ios::binary | std::ios::in);
 	if (!file.is_open())
@@ -151,12 +204,15 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 		response.setContentDisposition("attachment");
 		response.setContentType(extensionType(request));
 	}
+	std::cout << "valid request" << std::endl;
+	std::cout << response << std::endl;
 	return true;
 }
 
 
 bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &server)
 {
+	std::cout << "handling POST" << std::endl << request << std::endl;
 	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1); //need to check it is correctly truncated
 
 	if (!server.isRoute(path))
@@ -205,6 +261,7 @@ bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &ser
 
 bool	RequestHandler::rDel(Request &request, Response &response, ServConfig &server)
 {
+	std::cout << "handling DELETE" << std::endl << request << std::endl;
 	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1); //need to check it is correctly truncated
 
 	if (!server.isRoute(path))

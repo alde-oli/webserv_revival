@@ -165,6 +165,7 @@ void	Request::setCgiArgs(std::string key)
 //handle the request and build the response
 bool	Request::handle(ServConfig &server, Response &response)
 {
+	std::cout << "handling request" << std::endl;
 	response.setCodes(server.getCodes());
 	if (_method == "GET")
 		return RequestHandler::rGet(*this, response, server);

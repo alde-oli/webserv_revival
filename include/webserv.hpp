@@ -13,9 +13,9 @@
 
 //timeouts
 //acceptable to for inactive are 60-120s
-#define INACTIVE_TO 120
+#define INACTIVE_TO 180
 //acceptable to for kevent are 3-10s
-#define KEVENT_TO 3
+#define KEVENT_TO 10
 //acceptable to for sread and write are 5-30s
 #define SEND_TO 30
 #define RECV_TO 30

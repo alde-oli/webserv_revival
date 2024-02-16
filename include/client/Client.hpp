@@ -21,6 +21,7 @@ class Client
 		//operators overload//
 		//////////////////////
 
+		Client					&operator=(const Client &c);
 		friend std::ostream&	operator<<(std::ostream& os, const Client& c);
 
 		///////////
@@ -28,6 +29,7 @@ class Client
 		///////////
 
 		void					updateActivity();
+		void					setClientFd(int fd);
 
 		///////////
 		//getters//
@@ -36,6 +38,7 @@ class Client
 		int						getServFd();
 		sockaddr_in				getAddr();
 		std::time_t				getLastActivity();
+		void					printRequest();
 
 		////////////////////
 		//member functions//
@@ -55,8 +58,8 @@ class Client
 		std::time_t				_lastActivity;
 
 		std::string				_rawRequest;
-		static bool				_EOHFound;
-		static size_t			_bodyToRead;
+		bool					_EOHFound;
+		size_t					_bodyToRead;
 		
 
 		Request					_request;

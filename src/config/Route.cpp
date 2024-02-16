@@ -9,8 +9,21 @@
 ///////////////////////////////
 
 Route::Route()
-	: _id(""), _path(""), _root(""), _defaultPage(""), _methods(), _isRedir(false), _redirDir(""), _listing(false), _isDownload(false), _downloadDir(""), _isUpload(false), _forceUpload(false), _cgiExt()
-{}
+{
+	_id = "";
+	_path = "";
+	_root = "";
+	_defaultPage = "";
+	_methods = std::vector<std::string>();
+	_listing = false;
+	_isUpload = false;
+	_forceUpload = false;
+	_isDownload = false;
+	_downloadDir = "";
+	_isRedir = false;
+	_redirDir = "";
+	_cgiExt = std::vector<std::string>();
+}
 
 /////////////
 // [ SET ] //
