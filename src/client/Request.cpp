@@ -1,5 +1,6 @@
 #include "../../include/client/Request.hpp"
 #include "../../include/client/RequestHandler.hpp"
+#include "../../include/logs.hpp"
 
 
 //////////////////////////////
@@ -40,7 +41,8 @@ std::ostream	&operator<<(std::ostream &out, Request const &src)
 	out << "Headers: " << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = src._headers.begin(); it != src._headers.end(); it++)
 		out << it->first << ": " << it->second << std::endl;
-	out << "RawBody: " << src._rawBody << std::endl;
+	if (src._rawBody.size() > 0 && src._rawBody.size() < 500)
+		out << "RawBody: " << src._rawBody << std::endl;
 	out << "RefinedBody: " << src._refinedBody << std::endl;
 	out << "#---------------------------#" << std::endl;
 	return out;
@@ -128,13 +130,14 @@ bool	Request::buildHeader(std::string rawHeader)
 bool	Request::buildBody(std::string rawBody)
 {
 	_rawBody = rawBody;
+
 	if (_method == "POST")
 	{
 		if (_headers.find("Content-Type") != _headers.end())
 		{
 			std::string	contentType = _headers["Content-Type"];
-			if (contentType.find("multipart/form-data") != std::string::npos && _headers["Content-Type"].find("boundary=") != std::string::npos)
-				{if (_refinedBody.setFiles(_headers["Content-type"].substr(_headers["Content-type"].find("boundary=") + 9), _rawBody))
+			if (contentType.find("multipart/form-data") != std::string::npos && contentType.find("boundary=") != std::string::npos)
+				{if (_refinedBody.setFiles(contentType.substr(contentType.find("boundary=") + 9), _rawBody))
 					{clear(); return true;}}
 			else if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 				{if(_refinedBody.setCgiArgs(_rawBody))
@@ -165,7 +168,7 @@ void	Request::setCgiArgs(std::string key)
 //handle the request and build the response
 bool	Request::handle(ServConfig &server, Response &response)
 {
-	std::cout << "handling request" << std::endl;
+	EXECLOG("Handling request")
 	response.setCodes(server.getCodes());
 	if (_method == "GET")
 		return RequestHandler::rGet(*this, response, server);

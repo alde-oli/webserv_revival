@@ -27,10 +27,26 @@ void	Codes::addErrPage(int code, std::string page)
 	_errPages[code] = page;
 }
 
-const std::string	&Codes::getErrPage(int code) const
+const std::string	Codes::getErrPage(int code) const
 {
-	std::map<int, std::string>::const_iterator it = _errPages.find(code);
-	return (it->second);
+	std::string errPage;
+	if (_errPages.find(code) == _errPages.end())
+	{
+		errPage = DEFAULT_ERRORS;
+		std::ostringstream oss;
+		oss << code;
+		errPage += oss.str();
+		errPage += ".html";
+	}
+	else
+		errPage = _errPages.find(code)->second;
+
+	std::fstream file(errPage.c_str());
+	if (!file.is_open())
+		std::cerr << "Error: Failed to open file: " << errPage << std::endl;
+	std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	file.close();
+	return content;
 }
 
 bool 	Codes::checkValidity(std::string dir)

@@ -13,7 +13,7 @@
 //creates a client ready to handle events
 Client::Client(int clientFd, sockaddr_in clientAddr, int serverFd)
 	: _clientFd(clientFd), _serverFd(serverFd), _clientAddr(clientAddr), _lastActivity(std::time(0)), _rawRequest(""), _EOHFound(false), _bodyToRead(0)
-{std::cout << "new client created" << std::endl;}
+{}
 
 //client socket is automatically closed if open
 Client::~Client()
@@ -81,7 +81,7 @@ std::time_t	Client::getLastActivity()
 	{return (_lastActivity);}
 
 void	Client::printRequest()
-	{std::cout << _request << std::endl;}
+	{READLOG(_request)}
 
 ////////////////////
 //member functions//
@@ -91,20 +91,19 @@ void	Client::printRequest()
 //return: true if client need to be closed else false
 bool Client::read(ServConfig &server, int kq)
 {
-	(void)kq;
 	updateActivity();
-	std::cout << "hello there" << std::endl;
 
 	const std::string EOHeader = "\r\n\r\n"; // End of header
 	char buff[BUF_SIZE]; // Stores data read by recv
 	ssize_t bytesRead;
-
+	READLOG("Reading header")
+	READLOG("EOHFound: " << _EOHFound)
 	// Try to find end of header if not already found
 	if (!_EOHFound) {
 		bytesRead = recv(_clientFd.get(), buff, BUF_SIZE, 0);
 		if (bytesRead <= 0) {
 			if (bytesRead == 0) std::cout << "Client closed connection" << std::endl;
-			else std::cerr << "recv() fail, closing client" << std::endl;
+			else READLOG("recv() fail, closing client")
 			return true; // True indicates an error or closed connection
 		}
 		_rawRequest.append(buff, bytesRead);
@@ -112,7 +111,7 @@ bool Client::read(ServConfig &server, int kq)
 		std::string::size_type pos = _rawRequest.find(EOHeader);
 		if (pos != std::string::npos) {
 			_EOHFound = true;
-			if (_request.buildHeader(_rawRequest.substr(0, pos))) {
+			if (std::cout << "hello1" << std::endl && _request.buildHeader(_rawRequest.substr(0, pos))) {
 				_response.setCode(400); // Bad request
 				return false;
 			}
@@ -136,10 +135,23 @@ bool Client::read(ServConfig &server, int kq)
 		else
 			return false; // Continue reading
 	}
-
+	READLOG("Reading body")
+	READLOG("EOHFound: " << _EOHFound)
 	// Handle POST requests with expected body
 	if (_EOHFound && _bodyToRead > 0)
 	{
+		if (_rawRequest.size() >= _bodyToRead) {
+			if (_request.buildBody(_rawRequest.substr(0, _bodyToRead)))
+				{ _response.setCode(400); return false;}
+			// Request has been fully read, handle it
+			_EOHFound = false; // Reset for the next request
+			_bodyToRead = 0; // Reset body length for the next request
+			bool ret = !_request.handle(server, _response);
+			_rawRequest.clear();
+			_request.clear();
+			setWriteEvent(kq);
+			return ret;
+		}
 		bytesRead = recv(_clientFd.get(), buff, BUF_SIZE, 0);
 		if (bytesRead <= 0) {
 			if (bytesRead == 0) std::cout << "Client closed connection during body read" << std::endl;
@@ -150,8 +162,9 @@ bool Client::read(ServConfig &server, int kq)
 
 		if (_rawRequest.size() >= _bodyToRead) {
 			if (_request.buildBody(_rawRequest.substr(0, _bodyToRead)))
-				{_response.setCode(400); // Bad request
+				{std::cout << "hello3" << std::endl; _response.setCode(400); // Bad request
 				return false;}
+			std::cout << "bye bye 3" << std::endl;
 			// Request has been fully read, handle it
 			_EOHFound = false; // Reset for the next request
 			_bodyToRead = 0; // Reset body length for the next request
@@ -170,8 +183,7 @@ bool Client::read(ServConfig &server, int kq)
 //return: true if client needs to be closed, else false
 bool	Client::write(int kq)
 {
-	std::fstream file("writelog.txt", std::ios::out | std::ios::app);
-	file << "writing response to client" << std::endl;
+	WRITELOG(_response)
 	updateActivity();
 
 	bool closeClient = false;
@@ -182,7 +194,6 @@ bool	Client::write(int kq)
 	if (fullySent)//get ready to handle next interaction
 	{
 		_response.clear();
-		std::cout << _response << std::endl;
 		if (unsetWriteEvent(kq))
 			return true;
 		else

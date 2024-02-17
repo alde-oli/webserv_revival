@@ -10,6 +10,7 @@
 #include "client/Response.hpp"
 #include "client/Client.hpp"
 #include "ServRunner.hpp"
+#include "logs.hpp"
 
 //timeouts
 //acceptable to for inactive are 60-120s

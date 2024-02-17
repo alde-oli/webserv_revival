@@ -3,6 +3,7 @@
 //main function to initiate the server, handle events, and manage clients
 void	ServRunner::run(std::vector<ServConfig> &servers)
 {
+	std::cout << "running server" << std::endl;
 	AutoFD kq;
 	//initiate server sockets and kqueue
 	setSockets(servers);
@@ -18,17 +19,18 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 	{
 		int event = kevent(kq.get(), NULL, 0, events, MAX_EVENTS, &kqTimeout);
 		if (event < 0)
-			{std::cerr << "kevent() fail" << std::endl; continue;}
+			{ERRLOG("kevent() fail") continue;}
 		for (int i = 0; i < event; i++)
 		{
-			std::cout << "event " << events[i].filter << " of " << event;
-			std::cout << "event " << i << " of " << event;
+			EXECLOG("event " << i << " " << events[i].ident << " " << events[i].filter << " " << events[i].flags)
+
 			if (events[i].flags & EV_EOF) //client closed connection
-				{clients.erase(events[i].ident); std::cout << "client " << events[i].ident << " closed" << std::endl; continue;}
+				{clients.erase(events[i].ident);
+					CONNECTLOG("client " << events[i].ident << " closed") continue;}
 			//analysing events
 			else if (events[i].filter == EVFILT_READ)
 			{
-				std::cout << "READ" << std::endl;
+				EXECLOG("read event")
 				int newClient = 0;
 				//find out if new client or existing client then accept new client or read client requets
 				for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
@@ -39,14 +41,14 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 						{if (it->getSocketFd() == clients[events[i].ident].getServFd())
 						{
 							if (clients[events[i].ident].read(*it, kq.get())) //read client request, return 1 if client needs to be closed
-								{clients.erase(events[i].ident); std::cout << "client " << events[i].ident << " closed" << std::endl; break;}
+								{clients.erase(events[i].ident); CONNECTLOG("client " << events[i].ident << " closed") break;}
 							//clients[events[i].ident].printRequest();
 							break;
 			}	}	}	}
 			else if (events[i].filter == EVFILT_WRITE)
-				{clients[events[i].ident].write(kq.get());} //write client response
+				{clients[events[i].ident].write(kq.get()); EXECLOG("write event")} //write client response
 			else
-				{std::cerr << "unknown event" << std::endl;} 
+				ERRLOG("unknown event")
 			ServRunner::checkTimeouts(clients); //check last clients activity
 }	}	}
 
@@ -54,41 +56,42 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 //accepts new client and adds it to the clients map
 void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client> &clients)
 {
+	EXECLOG("new connection request")
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
 	//accept new client
 	int clientFd = accept(serverFd, (struct sockaddr *)&clientAddr, &clientAddrLen);
 	if (clientFd < 0)
-		{std::cerr << "accept() failed" << std::endl; return;}
+		{ERRLOG("accept() failed") return;}
 	//set client fd to non-blocking
 	int flags = fcntl(clientFd, F_GETFL, 0);
 	if (flags < 0 || fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) < 0)
-		{std::cerr << "fcntl() failed" << std::endl; close(clientFd); return;}
+		{ERRLOG("fcntl() failed") close(clientFd); return;}
 
 	//set recv timeout
 	struct timeval recvTimeout; recvTimeout.tv_sec = RECV_TO; recvTimeout.tv_usec = 0;
 	if (setsockopt(clientFd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout)) < 0)
-		{std::cerr << "setsockopt(SO_RCVTIMEO) failed" << std::endl; close(clientFd); return;}
+		{ERRLOG("setsockopt(SO_RCVTIMEO) failed") close(clientFd); return;}
 	//set send timeout
 	struct timeval sendTimeout; sendTimeout.tv_sec = SEND_TO; sendTimeout.tv_usec = 0;
 	if (setsockopt(clientFd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout)) < 0)
-		{std::cerr << "setsockopt(SO_SNDTIMEO) failed" << std::endl; close(clientFd); return;}
+		{ERRLOG("setsockopt(SO_SNDTIMEO) failed") close(clientFd); return;}
 
 	//add client read event to kqueue
 	struct kevent ev;
 	EV_SET(&ev, clientFd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	if (kevent(kq, &ev, 1, NULL, 0, NULL) < 0)
-		{std::cerr << "kevent() failed" << std::endl; close(clientFd); return;}
+		{ERRLOG("kevent() failed") close(clientFd); return;}
 	//add client write event to kqueue
 	EV_SET(&ev, clientFd, EVFILT_WRITE, EV_ADD | EV_DISABLE, 0, 0, NULL);
 	if (kevent(kq, &ev, 1, NULL, 0, NULL) < 0)
-		{std::cerr << "kevent() failed" << std::endl; close(clientFd); return;}
+		{ERRLOG("kevent() failed") close(clientFd); return;}
 
 	//add client to clients map
 	clients[clientFd] = Client(-1, clientAddr, serverFd);
 	clients[clientFd].setClientFd(clientFd);
-	std::cout << "new client accepted" << std::endl;
-	std::cout << clients[clientFd] << std::endl;
+	CONNECTLOG("new client accepted")
+	CONNECTLOG(clients[clientFd])
 }
 
 
@@ -100,7 +103,7 @@ void ServRunner::checkTimeouts(std::map<int, Client>& clients)
 	for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end();)
 	{
 		if (now - it->second.getLastActivity() > INACTIVE_TO)
-			{clients.erase(it++); std::cout << "client timed out" << std::endl;}
+			{CONNECTLOG("client timed out") clients.erase(it++);}
 		else
 			++it;
 }	}

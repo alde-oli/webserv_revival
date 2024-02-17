@@ -1,6 +1,7 @@
 #include "../../include/libs.hpp"
 #include "../../include/client/RequestHandler.hpp"
 #include "../../include/client/Request.hpp"
+#include "../../include/logs.hpp"
 
 std::string getInterpreterPathForExtension(const std::string& extension)
 {
@@ -17,20 +18,14 @@ std::string getInterpreterPathForExtension(const std::string& extension)
 
 static bool rCgi(Request &request, Response &response, ServConfig &server)
 {
-	std::cout << "@@@@@@@@@@@@@@@@handling CGI@@@@@@@@@@@@@@@@@@" << std::endl;
     std::map<std::string, std::string> envMap = request.getBody().getCgiArgs();
     std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1);
     Route route = server.getRoute(path);
     std::string cgiName = request["uri"].substr(request["uri"].find_last_of('/') + 1, request["uri"].find_last_of('?') - request["uri"].find_last_of('/') - 1);
     std::string cgiPath = "/Users/alde-oli/Desktop/webserv_revival/" + route.getRoot() + cgiName;
 
-	std::cout << "path: " << cgiPath << std::endl;
-
-	for (std::map<std::string, std::string>::iterator it = envMap.begin(); it != envMap.end(); it++)
-		std::cout << it->first << " : " << it->second << std::endl;
-	
-
-    if (access(cgiPath.c_str(), X_OK) == -1) {
+    if (access(cgiPath.c_str(), X_OK) == -1)
+	{
         response.setCode(404);
 		std::cout << "access fail" << std::endl;
         return true;
@@ -100,8 +95,6 @@ static bool rCgi(Request &request, Response &response, ServConfig &server)
     for (size_t i = 0; i < env.size(); ++i) {
         delete[] env[i];
     }
-	std::cout << "valid request" << std::endl;
-	std::cout << response << std::endl;
     return true;
 }
 
@@ -138,9 +131,7 @@ static std::string	extensionType(Request &request)
 
 bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &server)
 {
-	std::cout << "handling GET" << std::endl << request << std::endl;
 	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1); //need to check it is correctly truncated
-	std::cout << "path: " << path << std::endl;
 	if (!server.isRoute(path))
 		{response.setCode(404); std::cout << "invalid request" << std::endl; return true;}
 	
@@ -157,7 +148,6 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 		{response.setCode(405); std::cout << "invalid request" << std::endl; return true;}
 	
 	std::string toGet = request["uri"].substr(request["uri"].find_last_of('/') + 1); // need to check it is correctly truncated
-	std::cout << "toGet: " << toGet << std::endl;
 	if (toGet.empty())
 		{if (route.isListing())
 			{response.setCode(200);
@@ -183,14 +173,22 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 		else
 			{response.setCode(404); return true;}}
 
-	std::string args = toGet.substr(toGet.find_last_of('?') + 1);
-	std::cout << "args: " << args << std::endl;
-	std::string extension = toGet.substr(toGet.find_last_of('.'), toGet.find_last_of('?') - toGet.find_last_of('.'));
-	std::cout << "extension: " << extension << std::endl;
+	std::string args;
+	std::string extension;
+	if (toGet.find_last_of('?') != std::string::npos)
+	{
+		args = toGet.substr(toGet.find_last_of('?') + 1);
+		request.setCgiArgs(args);
+		extension = toGet.substr(toGet.find_last_of('.'), toGet.find_last_of('?') - toGet.find_last_of('.'));
+	}
+	if (toGet.find_last_of('?') == std::string::npos && toGet.find_last_of('.') != std::string::npos)
+		extension = toGet.substr(toGet.find_last_of('.'));
+	else if (toGet.find_last_of('?') != std::string::npos && toGet.find_last_of('.') != std::string::npos)
+		extension = toGet.substr(toGet.find_last_of('.'), toGet.find_last_of('?') - toGet.find_last_of('.'));
 	if (route.isCgi(extension))
-		{request.setCgiArgs(args); return rCgi(request, response, server);}
-	std::cout << "not cgi" << std::endl;
+		{return rCgi(request, response, server);}
 	toGet = route.getRoot() + toGet;
+
 	std::ifstream file(toGet, std::ios::binary | std::ios::in);
 	if (!file.is_open())
 		{response.setCode(404); return true;}
@@ -204,15 +202,14 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 		response.setContentDisposition("attachment");
 		response.setContentType(extensionType(request));
 	}
-	std::cout << "valid request" << std::endl;
-	std::cout << response << std::endl;
 	return true;
 }
 
 
 bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &server)
 {
-	std::cout << "handling POST" << std::endl << request << std::endl;
+	std::cout << "POST" << std::endl;
+	std::cout << request << std::endl;
 	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1); //need to check it is correctly truncated
 
 	if (!server.isRoute(path))
@@ -234,17 +231,18 @@ bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &ser
 	if (!cgi.empty())
 		return rCgi(request, response, server);
 	
-	if (!route.isUpload())
+	if (!route.isDownload())
 		{response.setCode(405); return true;}
 	
 	if (request["Content-Type"].find("multipart/form-data") == std::string::npos)
 		{response.setCode(400); return true;}
 	
 	std::vector<contentData> files = request.getBody().getFiles();
-
+	std::cout << "hello" << std::endl;
 	for (size_t i = 0; i < files.size(); i++)
 	{
 		std::string path = route.getDownloadDir() + files[i]._fileName;
+		std::cout << path << std::endl;
 		std::ofstream file(path, std::ios::binary | std::ios::trunc | std::ios::out);
 		if (!file.is_open())
 			{response.setCode(500); return true;}
@@ -255,13 +253,13 @@ bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &ser
 		response.setKeepAlive(true);
 		response.setContentLength(0);
 	}
+	std::cout << response << std::endl;
 	return true;
 }
 
 
 bool	RequestHandler::rDel(Request &request, Response &response, ServConfig &server)
 {
-	std::cout << "handling DELETE" << std::endl << request << std::endl;
 	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1); //need to check it is correctly truncated
 
 	if (!server.isRoute(path))
