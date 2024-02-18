@@ -389,6 +389,8 @@ std::vector<ServConfig>		ServerParsing(std::string filename)
 	file.close();
 	if (hasDuplicateAddress(servers))
 		CerrExit("Error: duplicate server address", "");
+	if (checkIPServer == false)
+		CerrExit("Error: invalid server address", "");
 	return (servers);
 }
 
