@@ -154,17 +154,16 @@ bool Client::read(ServConfig &server, int kq)
 		}
 		bytesRead = recv(_clientFd.get(), buff, BUF_SIZE, 0);
 		if (bytesRead <= 0) {
-			if (bytesRead == 0) std::cout << "Client closed connection during body read" << std::endl;
-			else std::cerr << "recv() fail during body read, closing client" << std::endl;
+			if (bytesRead == 0) {CERRANDEXIT std::cout << "Client closed connection during body read" << std::endl;}
+			else {CERRANDEXIT std::cerr << "recv() fail during body read, closing client" << std::endl;}
 			return true; // Error or closed connection
 		}
 		_rawRequest.append(buff, bytesRead);
 
 		if (_rawRequest.size() >= _bodyToRead) {
 			if (_request.buildBody(_rawRequest.substr(0, _bodyToRead)))
-				{std::cout << "hello3" << std::endl; _response.setCode(400); // Bad request
+				{_response.setCode(400); // Bad request
 				return false;}
-			std::cout << "bye bye 3" << std::endl;
 			// Request has been fully read, handle it
 			_EOHFound = false; // Reset for the next request
 			_bodyToRead = 0; // Reset body length for the next request
@@ -209,7 +208,7 @@ bool Client::setWriteEvent(int kq)
 	struct kevent evWrite;
 	EV_SET(&evWrite, _clientFd.get(), EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	if (kevent(kq, &evWrite, 1, NULL, 0, NULL) < 0) {
-		std::cerr << "error while registering write event, closing client" << std::endl << *this;
+		{CERRANDEXIT std::cerr << "error while registering write event, closing client" << std::endl << *this;}
 		return true; // Signaler une erreur
 	}
 	
@@ -227,7 +226,7 @@ bool Client::unsetWriteEvent(int kq)
 	EV_SET(&evWrite, _clientFd.get(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
 	if (kevent(kq, &evWrite, 1, NULL, 0, NULL) < 0)
 	{
-		std::cerr << "error while unregistering write event, closing client" << std::endl << *this;
+		{CERRANDEXIT std::cerr << "error while unregistering write event, closing client" << std::endl << *this;}
 		return false;
 	}
 

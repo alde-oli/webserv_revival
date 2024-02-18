@@ -37,7 +37,7 @@ void	Route::setId(std::string id)
 void	Route::setPath(std::string path)
 {
 	if (!isRouteValid(path))
-		CerrExit("Error: Invalid route: ", path);
+		{CERRANDEXIT CerrExit("Error: Invalid route: ", path);}
 	this->_path = path;
 }
 
@@ -242,21 +242,21 @@ void	Route::verif() const
 	int count = 0;
 
 	if (_id.empty())
-		CerrExit("Route ID is empty please insert a valid Route ID", "");
+		{CERRANDEXIT CerrExit("Route ID is empty please insert a valid Route ID", "");}
 	else if (_path.empty())
-		CerrExit("Route is empty please insert a valid Route", "");
+		{CERRANDEXIT CerrExit("Route is empty please insert a valid Route", "");}
 	else if (_root.empty())
-		CerrExit("Root is empty please insert a valid Root", "");
+		{CERRANDEXIT CerrExit("Root is empty please insert a valid Root", "");}
 	else if (_methods.empty())
-		CerrExit("Methods are empty please insert valids Methods", "");
+		{CERRANDEXIT CerrExit("Methods are empty please insert valids Methods", "");}
 	else if (_isDownload && _downloadDir.empty())
-		CerrExit("DownloadDir is empty please insert a valid DownloadDir", "");
+		{CERRANDEXIT CerrExit("DownloadDir is empty please insert a valid DownloadDir", "");}
 	else if (_isRedir && _redirDir.empty())
-		CerrExit("RedirDir is empty please insert a valid RedirDir", "");
+		{CERRANDEXIT CerrExit("RedirDir is empty please insert a valid RedirDir", "");}
 	else if (_listing)
 		count++;
 	else if (_isRedir)
 		count++;
 	if (count == 2 && !_defaultPage.empty())
-		CerrExit("Multiple requests type not supported", "");
+		{CERRANDEXIT CerrExit("Multiple requests type not supported", "");}
 }

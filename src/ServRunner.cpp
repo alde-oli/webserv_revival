@@ -3,7 +3,7 @@
 //main function to initiate the server, handle events, and manage clients
 void	ServRunner::run(std::vector<ServConfig> &servers)
 {
-	std::cout << "running server" << std::endl;
+	std::cout << "✅ [Server is running...]" << std::endl;
 	AutoFD kq;
 	//initiate server sockets and kqueue
 	setSockets(servers);
@@ -15,7 +15,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 	//stores events
 	struct kevent events[MAX_EVENTS];
 	//main loop, everything happens here
-	while ("skibidi papa")
+	while (true)
 	{
 		int event = kevent(kq.get(), NULL, 0, events, MAX_EVENTS, &kqTimeout);
 		if (event < 0)
@@ -117,24 +117,24 @@ void	ServRunner::setSockets(std::vector<ServConfig> &servers)
 		//init socket
 		it->setSocketFd(socket(AF_INET, SOCK_STREAM, 0));
 		if (it->getSocketFd() < 0)
-			{std::cerr << "socket() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+			{CERRANDEXIT std::cerr << "socket() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
 		//set socket as reusing address
 		int opt = 1;
 		if (setsockopt(it->getSocketFd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-			{std::cerr << "setsockopt() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+			{CERRANDEXIT std::cerr << "setsockopt() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
 		//set socket to non-blocking
 		int flags = fcntl(it->getSocketFd(), F_GETFL, 0);
 		if (flags < 0 || fcntl(it->getSocketFd(), F_SETFL, flags | O_NONBLOCK) < 0)
-			{std::cerr << "fcntl() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+			{CERRANDEXIT std::cerr << "fcntl() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
 		//set recv timeout
 		struct timeval recvTimeout; recvTimeout.tv_sec = ACCEPT_TO; recvTimeout.tv_usec = 0;
 		if (setsockopt(it->getSocketFd(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout)) < 0)
-			{std::cerr << "setsockopt(SO_RCVTIMEO) failed for " << it->getId() << ". Exiting program." << std::endl; exit(1);}
+			{CERRANDEXIT std::cerr << "setsockopt(SO_RCVTIMEO) failed for " << it->getId() << ". Exiting program." << std::endl; exit(1);}
 		//bind and listen
 		if (bind(it->getSocketFd(), reinterpret_cast<const struct sockaddr*>(&it->getAddr()), sizeof(it->getAddr())) < 0)
-			{std::cerr << "bind() failed for " << it->getId() << ". exiting program"  << std::endl; exit(1);}
+			{CERRANDEXIT std::cerr << "bind() failed for " << it->getId() << ". exiting program"  << std::endl; exit(1);}
 		if (listen(it->getSocketFd(), 20) < 0)
-			{std::cerr << "listen() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+			{CERRANDEXIT std::cerr << "listen() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
 }	}
 
 
@@ -144,7 +144,7 @@ void	ServRunner::setKqueue(AutoFD &kq, std::vector<ServConfig> &servers)
 	//init kqueue
 	kq.set(kqueue());
 	if (kq.get() < 0)
-		{std::cerr << "kqueue() failed. exiting program" << std::endl; exit(1);}
+		{CERRANDEXIT std::cerr << "kqueue() failed. exiting program" << std::endl; exit(1);}
 	//add server sockets to kqueue
 	for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
 	{
@@ -152,5 +152,5 @@ void	ServRunner::setKqueue(AutoFD &kq, std::vector<ServConfig> &servers)
 		//add read event only because servers_fd just accept new clients
 		EV_SET(&ev, it->getSocketFd(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 		if (kevent(kq.get(), &ev, 1, NULL, 0, NULL) < 0)
-			{std::cerr << "kevent() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
+			{CERRANDEXIT std::cerr << "kevent() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
 }	}

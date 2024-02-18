@@ -59,7 +59,7 @@ Route		ServConfig::getRoute(std::string path) const
 {
 	std::map<std::string, Route>::const_iterator it = this->_routes.find(path);
 	if (it == this->_routes.end())
-		CerrExit("[ ERROR ] Route not found: ", path);
+		{CERRANDEXIT CerrExit("[ ERROR ] Route not found: ", path);}
 	return it->second;
 }
 
@@ -99,8 +99,7 @@ in_port_t	ServConfig::setPort(const std::string &port)
 
 	inetPort = htons(atoi(port.c_str()));
 	if (inetPort == 0)
-		CerrExit("Error: setPort() failed for: ", port);
-
+		{CERRANDEXIT CerrExit("Error: setPort() failed for: ", port);}
 	return inetPort;
 }
 
@@ -121,7 +120,7 @@ void	ServConfig::setIsDefault(std::string isDefault)
 	else if (isDefault == "false" || isDefault == "FALSE")
 		this->_isDefault = false;
 	else
-		CerrExit("[ ERROR ] Invalid value for default: ", isDefault);
+		{CERRANDEXIT CerrExit("[ ERROR ] Invalid value for default: ", isDefault);}
 }
 
 void	ServConfig::setDefaultPage(std::string defaultPage)
@@ -208,10 +207,7 @@ void	ServConfig::setRoute(std::fstream &file, std::string &line)
 	std::string		value;
 
 	if (line[0] != '[')
-	{
-		std::cerr << "Error: unexpected line" << line << std::endl;
-		exit (1);
-	}
+		{CERRANDEXIT CerrExit("unexpected line: ",line);}
 	Route route = Route();
 	route.setId(line.substr(line.find_last_of(':') + 1, line.length() - line.find_last_of(':') - 2));
 
@@ -244,10 +240,7 @@ void	ServConfig::setRoute(std::fstream &file, std::string &line)
 		else if (!line.find("cgi = "))
 			route.setCgiExt(line.substr(6));
 		else
-		{
-			std::cerr << "Error: invalid route line: " << line << std::endl;
-			exit (1);
-		}
+			{CERRANDEXIT CerrExit("invalid route line: ", line);}
 	}
 	this->_routes[route.getPath()] = route;
 
@@ -263,10 +256,7 @@ void	ServConfig::setRoute(std::fstream &file, std::string &line)
 		if (colonCount == 2 && line.find_last_of(':') < line.length() - 2)
 			setRoute(file, line);
 		else
-		{
-			std::cerr << "Error: invalid route format" << std::endl;
-			exit (1);
-		}
+			{CERRANDEXIT CerrExit("Error: invalid route format", "");}
 	}
 } 
 
@@ -280,10 +270,7 @@ void	ServConfig::setError(std::fstream &file, std::string &line)
 		if (line.empty())
 			continue ;
 		if (line.length() < 6 || !std::isdigit(line[0]) || !std::isdigit(line[1]) || !std::isdigit(line[2]) || line[3] != ' ' || line[4] != '=' || line[5] != ' ')
-		{
-			std::cerr << "Error: invalid error code: " << line << std::endl;
-			exit (1);
-		}
+			{CERRANDEXIT CerrExit("invalid error code: ", line);}
 		this->_errors.addErrPage(std::atoi(line.substr(0, 3).c_str()), line.substr(6));
 	}
 }
@@ -294,7 +281,7 @@ void	ServConfig::setMain(std::fstream &file, std::string &line)
 	std::string		value;
 
 	if (line.empty() || line[0] != '[' || line[line.length() - 1] != ']')
-		CerrExit("Error: invalid server ID line: ", line);
+		{CERRANDEXIT CerrExit("Error: invalid server ID line: ", line);}
 	this->_id = line.substr(1, line.length() - 2);
 
 	while (std::getline(file, line) && line[0] != '[')
@@ -320,22 +307,22 @@ void	ServConfig::setMain(std::fstream &file, std::string &line)
 		else if (!line.find("default_error_page = "))
 			this->_defaultPage = setFileStr(line.substr(21));
 		else
-			CerrExit("Error: invalid server line: ", line);
+			{CERRANDEXIT CerrExit("Error: invalid server line: ", line);}
 	}
 }
 
 void	ServConfig::checkValidity()
 {
 	if (_id.empty())
-		CerrExit("Error : ID is empty please insert a valid ID", "");
+		{CERRANDEXIT CerrExit("Error : ID is empty please insert a valid ID", "");}
 	else if (_name.empty())
-		CerrExit("Error : ServerName is empty please insert a valid ServerName", "");
+		{CERRANDEXIT CerrExit("Error : ServerName is empty please insert a valid ServerName", "");}
 	else if (_defaultPage.empty())
-		CerrExit("Error : DefaultPage is empty please insert a valid DefaultPage", "");
+		{CERRANDEXIT CerrExit("Error : DefaultPage is empty please insert a valid DefaultPage", "");}
 	else if (_maxBodySize <= 0)
-		CerrExit("Error : MaxBodySize is empty please insert a valid MaxBodySize", "");
+		{CERRANDEXIT CerrExit("Error : MaxBodySize is empty please insert a valid MaxBodySize", "");}
 	if (isLocalOrExternal(_addr) == false)
-		CerrExit("Error : ServerAddr is not valid please insert a valid ServerAddr", "");
+		{CERRANDEXIT CerrExit("Error : ServerAddr is not valid please insert a valid ServerAddr", "");}
 	
 	std::map<std::string, Route>::iterator it;
 
@@ -352,7 +339,7 @@ std::vector<ServConfig>		ServerParsing(std::string filename)
 	std::fstream file(filename);
 	
 	if (!file.is_open())
-		CerrExit("Error: Failed to open file: ", filename);
+		{CERRANDEXIT CerrExit("Error: Failed to open file: ", filename);}
 	
 	std::vector<ServConfig> servers;
 	std::string line;
@@ -364,7 +351,7 @@ std::vector<ServConfig>		ServerParsing(std::string filename)
 		else if (line[0] == '[' && line[line.size() - 1] == ']')
 		{
 			if (line.find(":") != std::string::npos)
-				CerrExit("Error: bad server name: ", line);
+				{CERRANDEXIT CerrExit("Error: bad server name: ", line);}
 			while (line[0] == '[' && countDeuxPoints(line) == 0)
 			{
 				server = ServConfig();
@@ -379,18 +366,19 @@ std::vector<ServConfig>		ServerParsing(std::string filename)
 					}
 				}
 				if (duplicateId)
-					CerrExit("Error: duplicate server ID: ", server.getId());
+					{CERRANDEXIT CerrExit("Error: duplicate server ID: ", server.getId());}
 				servers.push_back(server);
 			}
 		}
 		else
-			CerrExit("Error: bad line: ", line);
+			{CERRANDEXIT CerrExit("Error: bad line: ", line);}
 	}
 	file.close();
 	if (hasDuplicateAddress(servers))
-		CerrExit("Error: duplicate server address", "");
-	if (checkIPServer == false)
-		CerrExit("Error: invalid server address", "");
+		{CERRANDEXIT CerrExit("Error: duplicate server address", "");}
+	for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); ++it)
+		if (checkIPServer(*it) == false)
+			{CERRANDEXIT CerrExit("Error: invalid server address", "");}
 	return (servers);
 }
 

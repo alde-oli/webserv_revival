@@ -20,10 +20,10 @@ std::ostream	&operator<<(std::ostream &out, Codes const &src)
 void	Codes::addErrPage(int code, std::string page)
 {
 	if (code < 400 || code > 599)
-		CerrExit("Error: Error code must be between 100 and 599", "");
+		{CERRANDEXIT CerrExit("Error: Error code must be between 100 and 599", "");}
 	for (std::map<int, std::string>::const_iterator it = _errPages.begin(); it != _errPages.end(); ++it)
 		if (it->first == code)
-			CerrExit("Error: Error code already exists: ", page);
+			{CERRANDEXIT CerrExit("Error: Error code already exists: ", page);}
 	_errPages[code] = page;
 }
 
@@ -43,7 +43,7 @@ const std::string	Codes::getErrPage(int code) const
 
 	std::fstream file(errPage.c_str());
 	if (!file.is_open())
-		std::cerr << "Error: Failed to open file: " << errPage << std::endl;
+		{CERRANDEXIT std::cerr << "Failed to open file: " << errPage << std::endl;}
 	std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	file.close();
 	return content;
@@ -55,7 +55,7 @@ bool 	Codes::checkValidity(std::string dir)
 
 	dirp = opendir(dir.c_str());
 	if (!dirp)
-		CerrExit("Error: Failed to open directory: ", dir);
+		{CERRANDEXIT CerrExit("Error: Failed to open directory: ", dir);}
 	closedir(dirp);
 
 	return false; // zero si le dossier est valide

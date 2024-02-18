@@ -45,7 +45,7 @@ in_addr_t	setIPv4(const std::string &addr)
 
 	inetAddr = inet_addr(addr.c_str());
 	if (inetAddr == INADDR_NONE)
-		CerrExit("Error: setIPv4() failed for: ", addr);
+		{CERRANDEXIT CerrExit("Error: setIPv4() failed for: ", addr);}
 	return inetAddr;
 }
 
@@ -53,7 +53,7 @@ std::string setFileStr(const std::string &file)
 {
 	std::ifstream inputFile(file.c_str());
 	if (!inputFile)
-		CerrExit("Error: Failed to open file: ", file);
+		{CERRANDEXIT CerrExit("Error: Failed to open file: ", file);}
 	inputFile.close();
 
 	return file;
@@ -78,9 +78,7 @@ static long long int setSize(std::string size)
 		return (nbr);
 	}
 	else
-	{
 		return (nbr = atol(size.c_str()));
-	}
 }
 
 long long int setBodySize(std::string size)
@@ -89,26 +87,20 @@ long long int setBodySize(std::string size)
 	{
 		unsigned int i = 0;
 		while (i < size.length() && isdigit(size[i]))
-		{
 			i++;
-		}
 		if (i < size.length() && !isdigit(size[i]) && (size[i] == 'M' || size[i] == 'G'))
 		{
 			if (i + 1 == size.length())
-			{
 				return (setSize(size));
-			}
 			else
-				CerrExit("Error: bad body size input: ", size);
+				{CERRANDEXIT CerrExit("Error: bad body size input: ", size);}
 		}
 		else if (i == size.length())
-		{
 			return (setSize(size));
-		}
 		else
-			CerrExit("Error: bad body size input: ", size);
+			{CERRANDEXIT CerrExit("Error: bad body size input: ", size);}
 	}
-	CerrExit("Error: bad body size input: ", size);
+	{CERRANDEXIT CerrExit("Error: bad body size input: ", size);}
 	return (0);
 }
 
@@ -117,15 +109,11 @@ bool setBool(std::string boolean)
 	bool value;
 
 	if (!strcmp(boolean.c_str(), "FALSE") || !strcmp(boolean.c_str(), "false"))
-	{
 		return (value = false);
-	}
 	else if (!strcmp(boolean.c_str(), "TRUE") || !strcmp(boolean.c_str(), "true"))
-	{
 		return (value = true);
-	}
 	else
-		CerrExit("Error: bad boolean type: ", boolean); return (0);
+		{CERRANDEXIT CerrExit("Error: bad boolean type: ", boolean); return (0);}
 }
 
 std::string setDirStr(const std::string &dir)
@@ -134,7 +122,7 @@ std::string setDirStr(const std::string &dir)
 
 	dirp = opendir(dir.c_str());
 	if (!dirp)
-		CerrExit("Error: Failed to open directory: ", dir);
+		{CERRANDEXIT CerrExit("Error: Failed to open directory: ", dir);}
 	closedir(dirp);
 
 	return dir;
@@ -157,7 +145,7 @@ std::vector<std::string> setCgiExtension(const std::string &cgiExtension)
 	while (std::getline(cgiExtensionStream, cgiExtensionStr, ' '))
 	{
 		if (cgiExtensionStr[0] != '.')
-			CerrExit("Error: Invalid CGI extension: ", cgiExtensionStr);
+			{CERRANDEXIT CerrExit("Error: Invalid CGI extension: ", cgiExtensionStr);}
 		std::vector<std::string> validExtensions;
 		validExtensions.push_back(".php");
 		validExtensions.push_back(".py");
@@ -172,7 +160,7 @@ std::vector<std::string> setCgiExtension(const std::string &cgiExtension)
 			if (*it == cgiExtensionStr)
 				break ;
 			if (it == validExtensions.end() - 1)
-				CerrExit("Error: Invalid CGI extension: ", cgiExtensionStr);
+				{CERRANDEXIT CerrExit("Error: Invalid CGI extension: ", cgiExtensionStr);}
 		}
 		cgiExtensionVec.push_back(cgiExtensionStr);
 	}
@@ -187,19 +175,19 @@ std::vector<std::string> setMethod(const std::string& method)
 	std::string tmp;
 
 	if (method.empty())
-		CerrExit("Error: method is empty", "");
+		{CERRANDEXIT CerrExit("Error: method is empty", "");}
 	while (std::getline(read_method, tmp, ' '))
 	{
 		if (check_method(tmp) == 1)
 		{
 			// Vérifier si la méthode est déjà dans le vecteur
 			if (std::find(stock.begin(), stock.end(), tmp) != stock.end())
-				CerrExit("Error: Tu as mis deux fois la meme methode, la shouma sur toi et sur toute ta famille\n#looooooser\n#ouloulou", "");
+				{CERRANDEXIT CerrExit("Error: Tu as mis deux fois la meme methode, la shouma sur toi et sur toute ta famille\n#looooooser\n#ouloulou", "");}
 			else
 				stock.push_back(tmp);
 		}
 		else
-			CerrExit("Error: Bad method input: ", method);
+			{CERRANDEXIT CerrExit("Error: Bad method input: ", method);}
 	}
 	return stock;
 }
@@ -233,7 +221,7 @@ void	setServer(std::fstream &file, std::string &line, ServConfig &server)
 		else if (countDeuxPoints(line) == 2 && line.find("ROUTE") == line.find_first_of(":") + 1 && line.find("ROUTE") != line.npos)
 			server.setRoute(file, line);
 		else
-			CerrExit("Error: bad line: ", line);
+			{CERRANDEXIT CerrExit("Error: bad line: ", line);}
 	}
 	while (line[0] == '[' || (getline(file, line) && line[0] != '['))
 	{
@@ -246,7 +234,7 @@ void	setServer(std::fstream &file, std::string &line, ServConfig &server)
 		else if (countDeuxPoints(line) == 2 && line.find("ROUTE") == line.find_first_of(":") + 1 && line.find("ROUTE") != line.npos)
 			server.setRoute(file, line);
 		else
-			CerrExit("Error: bad line: ", line);
+			{CERRANDEXIT CerrExit("Error: bad line: ", line);}
 	}
 	server.checkValidity();
 }
