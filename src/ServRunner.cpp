@@ -41,12 +41,17 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 						{if (it->getSocketFd() == clients[events[i].ident].getServFd())
 						{
 							if (clients[events[i].ident].read(*it, kq.get())) //read client request, return 1 if client needs to be closed
-								{clients.erase(events[i].ident); CONNECTLOG("client " << events[i].ident << " closed") break;}
+								{if (clients[events[i].ident].isResponse())
+									{clients[events[i].ident].setWriteEvent(kq.get());}
+								else
+									{clients.erase(events[i].ident); CONNECTLOG("client " << events[i].ident << " closed") break;}}
 							//clients[events[i].ident].printRequest();
 							break;
 			}	}	}	}
 			else if (events[i].filter == EVFILT_WRITE)
-				{clients[events[i].ident].write(kq.get()); EXECLOG("write event")} //write client response
+				{if (clients[events[i].ident].write(kq.get()))
+					{clients.erase(events[i].ident); CONNECTLOG("client " << events[i].ident << " closed")}
+				EXECLOG("write event")} //write client response
 			else
 				ERRLOG("unknown event")
 			ServRunner::checkTimeouts(clients); //check last clients activity

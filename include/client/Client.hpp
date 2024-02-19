@@ -50,6 +50,8 @@ class Client
 		bool					setWriteEvent(int kq);
 		bool					unsetWriteEvent(int kq);
 
+		bool					isResponse();
+
 
 	private:
 		AutoFD					_clientFd;

@@ -67,14 +67,14 @@ static long long int setSize(std::string size)
 	{
 		size = size.substr(0, size.find('M'));
 		nbr = atol(size.c_str());
-		nbr *= 1000;
+		nbr *= 1000000;
 		return (nbr);
 	}
 	else if (size.find('G') != std::string::npos)
 	{
 		size = size.substr(0, size.find('G'));
 		nbr = atol(size.c_str());
-		nbr *= 1000000;
+		nbr *= 1000000000;
 		return (nbr);
 	}
 	else

@@ -4,7 +4,7 @@ Server Address: 127.0.0.1:8080
 Server Socket: -1
 Is Default: 1
 Default Page: Web/DreamWorld/test.html
-Max Body Size: 100000
+Max Body Size: 1000000
 Cookies: 1
 Routes: 
 Route ID: MAIN

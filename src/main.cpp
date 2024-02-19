@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 	if (argc > 2)
 		{std::cerr << "Usage: ./webserv [config_file.ini]" << std::endl; return 1;}
 	else if (argc == 1)
-		servers = ServerParsing("defaultConfig.ini");
+		servers = ServerParsing("config/defaultConfig.ini");
 	else
 		servers = ServerParsing(argv[1]);
 

@@ -111,18 +111,21 @@ bool Client::read(ServConfig &server, int kq)
 		std::string::size_type pos = _rawRequest.find(EOHeader);
 		if (pos != std::string::npos) {
 			_EOHFound = true;
-			if (std::cout << "hello1" << std::endl && _request.buildHeader(_rawRequest.substr(0, pos))) {
+			if (_request.buildHeader(_rawRequest.substr(0, pos))) {
 				_response.setCode(400); // Bad request
-				return false;
+				return true;
 			}
 			_rawRequest.erase(0, pos + EOHeader.length());
 
 			// If request is POST, check for Content-Length
 			if (_request["method"] == "POST" && _request.isHeader("Content-Length")) {
 				_bodyToRead = std::atoi(_request["Content-Length"].c_str());
+				std::cout << "Body to read: " << _bodyToRead << std::endl;
+				std::cout << "Max body size: " << server.getMaxBodySize() << std::endl;
 				if (_bodyToRead > static_cast<size_t>(server.getMaxBodySize())) {
 					_response.setCode(413); // Payload Too Large
-					return false;
+					std::cout << "Payload too large" << std::endl;
+					return true;
 				}
 			} else {
 				// No body expected, handle request
@@ -147,7 +150,7 @@ bool Client::read(ServConfig &server, int kq)
 			_EOHFound = false; // Reset for the next request
 			_bodyToRead = 0; // Reset body length for the next request
 			bool ret = !_request.handle(server, _response);
-			_rawRequest.clear();
+			_rawRequest = _rawRequest.substr(_bodyToRead);
 			_request.clear();
 			setWriteEvent(kq);
 			return ret;
@@ -236,3 +239,9 @@ bool Client::unsetWriteEvent(int kq)
 
 	return true;
 }
+
+//returns true if the client has a response to send
+bool	Client::isResponse()
+	{if (_response.getCode() != 0)
+		return true;
+	return false;}
