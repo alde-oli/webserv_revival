@@ -50,6 +50,8 @@ class Client
 		bool					setWriteEvent(int kq);
 		bool					unsetWriteEvent(int kq);
 
+		void					handleCookies(sockaddr_in addr, std::string hostname);
+
 		bool					isResponse();
 
 

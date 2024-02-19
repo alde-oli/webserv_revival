@@ -3,7 +3,6 @@
 //main function to initiate the server, handle events, and manage clients
 void	ServRunner::run(std::vector<ServConfig> &servers)
 {
-	std::cout << "✅ [Server is running...]" << std::endl;
 	AutoFD kq;
 	//initiate server sockets and kqueue
 	setSockets(servers);
@@ -15,6 +14,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 	//stores events
 	struct kevent events[MAX_EVENTS];
 	//main loop, everything happens here
+	std::cout << "✅ [Server is running...]" << std::endl;
 	while (true)
 	{
 		int event = kevent(kq.get(), NULL, 0, events, MAX_EVENTS, &kqTimeout);
