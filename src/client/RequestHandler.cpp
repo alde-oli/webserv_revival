@@ -88,7 +88,7 @@ static bool rCgi(Request &request, Response &response, ServConfig &server)
             response.setContent(output);
 			response.setContentLength(output.size());
 			response.setContentType("text/html; charset=UTF-8");
-			response.setKeepAlive(true);
+			response.setKeepAlive(false);
         }
     }
 
@@ -140,7 +140,7 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 	if (route.isRedir())
 		{response.setCode(302);
 		response.setLocation(route.getRedirDir());
-		response.setKeepAlive(true);
+		response.setKeepAlive(false);
 		return true;}
 
 	std::vector<std::string> methods = route.getMethods();
@@ -154,7 +154,7 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 			response.setContentType("text/html; charset=UTF-8");
 			response.setContentLength(route.list().size());
 			response.setContent(route.list());
-			response.setKeepAlive(true);
+			response.setKeepAlive(false);
 			return true;}
 		else if (!route.getDefaultPage().empty())
 			{response.setCode(200);
@@ -168,7 +168,7 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 			std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 			response.setContent(content);
 			response.setContentLength(content.size());
-			response.setKeepAlive(true);
+			response.setKeepAlive(false);
 			return true;}
 		else
 			{response.setCode(404); return true;}}
@@ -196,7 +196,7 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 	response.setCode(200);
 	response.setContent(content);
 	response.setContentLength(content.size());
-	response.setKeepAlive(true);
+	response.setKeepAlive(false);
 	if (route.isUpload())
 	{
 		response.setContentDisposition("attachment");
@@ -220,7 +220,7 @@ bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &ser
 	if (route.isRedir())
 		{response.setCode(302);
 		response.setLocation(route.getRedirDir());
-		response.setKeepAlive(true);
+		response.setKeepAlive(false);
 		return true;}
 
 	std::vector<std::string> methods = route.getMethods();
@@ -250,7 +250,7 @@ bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &ser
 		file.close();
 
 		response.setCode(201);
-		response.setKeepAlive(true);
+		response.setKeepAlive(false);
 		response.setContentLength(0);
 	}
 	std::cout << response << std::endl;
@@ -285,6 +285,6 @@ bool	RequestHandler::rDel(Request &request, Response &response, ServConfig &serv
 	if (std::remove(toDel.c_str()) != 0)
 		{response.setCode(500); return true;}
 	response.setCode(204);
-	response.setKeepAlive(true);
+	response.setKeepAlive(false);
 	return true;
 }

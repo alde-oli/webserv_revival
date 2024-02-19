@@ -23,7 +23,7 @@
 #define ACCEPT_TO 15
 
 //memory|perfs limits
-#define MAX_EVENTS 5
+#define MAX_EVENTS 1024
 #define BUF_SIZE 16384
 
 #define LOCALHOST "127.0.0.1"
