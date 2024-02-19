@@ -1,4 +1,5 @@
 #include "../../include/client/Response.hpp"
+#include "../../include/logs.hpp"
 
 ///////////////////////////////
 //Constructors and destructor//
@@ -111,6 +112,7 @@ std::string	Response::getContent()
 int	Response::deliver(int socket)
 {
 	std::string response = "HTTP/1.1 " + std::to_string(_code) + " " + _codes.getMsgCode(_code) + "\r\n";
+	WRITELOG(*this)
 	if (_code > 399)
 	{
 		std::string content = _codes.getErrPage(_code);
