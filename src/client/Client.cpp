@@ -243,121 +243,113 @@ bool Client::unsetWriteEvent(int kq)
 	return true;
 }
 
-//parse cookies
-static std::map<std::string, std::string> parseCookies(const std::string& cookieHeader)
-{
-	std::map<std::string, std::string> cookies;
-	std::istringstream stream(cookieHeader);
-	std::string token;
+// Parse cookies from the Cookie header
+static std::map<std::string, std::string> parseCookies(const std::string& cookieHeader) {
+    std::map<std::string, std::string> cookies;
+    std::istringstream stream(cookieHeader);
+    std::string token;
 
-	if (cookieHeader.empty())
-		return cookies;
+    if (cookieHeader.empty()) {
+        return cookies;
+    }
 
-	while (getline(stream, token, ';'))
-		{size_t equalPos = token.find('=');
-		if (equalPos != std::string::npos)
-			{std::string key = token.substr(0, equalPos);
-			std::string value = token.substr(equalPos + 1);
-			if (!key.empty() && key[0] == ' ')
-				key.erase(0, 1);
-			cookies[key] = value;
-	}	}
-	return cookies;
+    while (getline(stream, token, ';')) {
+        size_t equalPos = token.find('=');
+        if (equalPos != std::string::npos) {
+            std::string key = token.substr(0, equalPos);
+            std::string value = token.substr(equalPos + 1);
+            if (!key.empty() && key[0] == ' ') {
+                key.erase(0, 1);
+            }
+            cookies[key] = value;
+        }
+    }
+    return cookies;
 }
 
-static std::string getTimeStr()
-{
-	std::time_t now = std::time(NULL);
-	struct tm *timeStruct = std::localtime(&now);
-	std::stringstream sstime;
-	sstime << (timeStruct->tm_year + 1900) << '-' << (timeStruct->tm_mon + 1) << '-' << timeStruct->tm_mday << ' ' << timeStruct->tm_hour << ':' << timeStruct->tm_min << ':' << timeStruct->tm_sec;
-	return sstime.str();
+// Get current time as a string
+static std::string getTimeStr() {
+    std::time_t now = std::time(NULL);
+    struct tm *timeStruct = std::localtime(&now);
+    std::stringstream sstime;
+    sstime << (timeStruct->tm_year + 1900) << '-' << (timeStruct->tm_mon + 1) << '-' << timeStruct->tm_mday << ' ' << timeStruct->tm_hour << ':' << timeStruct->tm_min << ':' << timeStruct->tm_sec;
+    return sstime.str();
 }
 
-std::string simpleHash(std::string data)
-{
-	data += getTimeStr();
+// Simple hash function
+std::string simpleHash(std::string data) {
+    data += getTimeStr();
 
-	unsigned long hash = 5381;
-	for (std::string::const_iterator it = data.begin(); it != data.end(); ++it)
-	{
-		char c = *it;
-		hash = ((hash << 5) + hash) + c;
-	}
-	std::stringstream ss;
-	ss << hash;
-	return ss.str();
+    unsigned long hash = 5381;
+    for (std::string::const_iterator it = data.begin(); it != data.end(); ++it) {
+        char c = *it;
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+    }
+    std::stringstream ss;
+    ss << hash;
+    return ss.str();
 }
 
+// Find or create cookie data
+std::string findCookieData(const std::string& serverHostname, const sockaddr_in& server_ip, const sockaddr_in& client_ip) {
+    std::fstream file("cookies.data", std::fstream::in | std::fstream::out | std::fstream::app);
+    std::string line, result;
 
-std::string findCookieData(const std::string& serverHostname, const sockaddr_in& server_ip, const sockaddr_in& client_ip)
-{
-	std::fstream file("cookies.data");
-	std::string line;
+    // Convert IP addresses to strings
+    char serverIpStr[INET_ADDRSTRLEN], clientIpStr[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(server_ip.sin_addr), serverIpStr, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &(client_ip.sin_addr), clientIpStr, INET_ADDRSTRLEN);
 
-	std::string result;
+    std::string lineToFind = "Host=" + serverHostname + "|" + std::string(serverIpStr) + " Client=" + std::string(clientIpStr) + " Hash=";
 
-	// Convertir les adresses IP en chaînes de caractères
-	char serverIpStr[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(server_ip.sin_addr), serverIpStr, INET_ADDRSTRLEN);
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            if (line.find(lineToFind) != std::string::npos) {
+                result = line;
+                break; // Found
+            }
+        }
+        file.clear(); // Clear eof flag to enable writing
+    } else {
+        std::cerr << "Unable to open file" << std::endl;
+        return "";
+    }
 
-	char clientIpStr[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(client_ip.sin_addr), clientIpStr, INET_ADDRSTRLEN);
+    if (result.empty()) {
+        result = lineToFind + simpleHash(clientIpStr);
+        file.seekp(0, std::ios::end); // Move to the end of the file for appending
+        file << result << std::endl;
+    }
 
-	std::string lineToFind = "Host=" + serverHostname + "|" + std::string(serverIpStr) + " Client=" + std::string(clientIpStr) + " Hash=";
-
-	if (file.is_open())
-	{
-		while (getline(file, line))
-		{
-			if (line.find(lineToFind) != std::string::npos)
-			{
-				result = line;
-				file.close();
-			}
-		}
-	}
-	else
-		{std::cerr << "Unable to open file" << std::endl; return "";}
-	if (result.empty())
-	{
-		std::string _clientId = 
-		result = "Host=" + serverHostname + "|" + std::string(serverIpStr) + " Client=" + std::string(clientIpStr) + " Hash=	" + simpleHash(clientIpStr);
-		file << result << std::endl;
-		file.close();
-	}
-	return result;
+    file.close();
+    return result;
 }
 
-//handle cookies
-void	Client::handleCookies(sockaddr_in addr, std::string hostname)
-{
-	std::string	cookieDough;
-	if (_request.isHeader("Cookie"))
-		cookieDough = _request["Cookie"];
-	
-	std::map<std::string, std::string>	cookies = parseCookies(cookieDough);
-	if (cookies.empty())
-	{
-		std::string cookieData = findCookieData(hostname, addr, _clientAddr);
-		std::string  id = cookieData.substr(cookieData.find("Hash=") + 5);
-		_response.setCookie("id=" + id + "; Last-Modified=" + getTimeStr());
-	}
-	else
-	{
-		cookies["Last-Modified"] = getTimeStr();
-		if (cookies.find("id") == cookies.end())
-		{
-			std::string cookieData = findCookieData(hostname, addr, _clientAddr);
-			std::string  id = cookieData.substr(cookieData.find("Hash=") + 5);
-			cookies["id"] = id;
-		}
-		std::string allCookies;
-		for (std::map<std::string, std::string>::iterator it = cookies.begin(); it != cookies.end(); ++it)
-			allCookies += it->first + "=" + it->second + "; ";
-		_response.setCookie(allCookies);
-	}
+// Handle cookies in the client
+void Client::handleCookies(sockaddr_in addr, std::string hostname) {
+    std::string cookieDough;
+    if (_request.isHeader("Cookie")) {
+        cookieDough = _request["Cookie"];
+    }
 
+    std::map<std::string, std::string> cookies = parseCookies(cookieDough);
+    if (cookies.empty()) {
+        std::string cookieData = findCookieData(hostname, addr, _clientAddr);
+        std::string id = cookieData.substr(cookieData.find("Hash=") + 5);
+        _response.setCookie("id=" + id + "; Last-Modified=" + getTimeStr());
+    } else {
+        cookies["Last-Modified"] = getTimeStr();
+        if (cookies.find("id") == cookies.end()) {
+            std::string cookieData = findCookieData(hostname, addr, _clientAddr);
+            std::string id = cookieData.substr(cookieData.find("Hash=") + 5);
+            cookies["id"] = id;
+        }
+        std::string allCookies;
+        for (std::map<std::string, std::string>::iterator it = cookies.begin(); it != cookies.end(); ++it) {
+            allCookies += it->first + "=" + it->second + "; ";
+        }
+        _response.setCookie(allCookies);
+    }
 }
 
 //returns true if the client has a response to send
