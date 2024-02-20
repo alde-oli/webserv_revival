@@ -144,15 +144,12 @@ int	Response::deliver(int socket)
 	int toSnd = response.size();
 	int sentTotal = 0;
 	int sent = 0;
-	while (toSnd > 0){
-	//this is the function
-	//to envoyer
-	//the data to the client
+
 	sent = send(socket, response.c_str() + sentTotal, toSnd, 0);
 	if (sent < 0)
 		return 1;
 	sentTotal += sent;
-	toSnd -= sent;}
+	toSnd -= sent;
 
 	if (toSnd == 0)
 	{
