@@ -125,7 +125,13 @@ bool Client::read(ServConfig &server, int kq)
 
 					return true;
 				}
-			} else {
+			}
+			else if (_request["method"] == "POST") {
+				std::cerr << "POST request without Content-Length" << std::endl;
+				_response.setCode(411); // Length Required
+				return true;
+			}
+			else {
 				// No body expected, handle request
 				if (server.isCookies())
 					handleCookies(server.getAddr(), server.getName());
@@ -139,14 +145,17 @@ bool Client::read(ServConfig &server, int kq)
 		else
 			return false; // Continue reading
 	}
+	std::cout << _request << std::endl;
+	std::cout << _rawRequest << std::endl;
 	READLOG("Reading body")
 	READLOG("EOHFound: " << _EOHFound)
 	// Handle POST requests with expected body
 	if (_EOHFound && _bodyToRead > 0)
 	{
+		std::cout << _rawRequest.size() << std::endl;
 		if (_rawRequest.size() >= _bodyToRead) {
 			if (_request.buildBody(_rawRequest.substr(0, _bodyToRead)))
-				{ _response.setCode(400); return false;}
+				{ _response.setCode(400); return true;}
 			// Request has been fully read, handle it
 			_EOHFound = false; // Reset for the next request
 			_bodyToRead = 0; // Reset body length for the next request

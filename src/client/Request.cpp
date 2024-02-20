@@ -171,6 +171,8 @@ bool	Request::handle(ServConfig &server, Response &response)
 	EXECLOG("Handling request")
 	READLOG(*this)
 	response.setCodes(server.getCodes());
+	if (response.getCode() > 299)
+		return true;
 	if (_method == "GET")
 		return RequestHandler::rGet(*this, response, server);
 	else if (_method == "POST")
