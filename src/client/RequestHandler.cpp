@@ -63,7 +63,6 @@ static bool rCgi(Request &request, Response &response, ServConfig &server)
         return true;
     } else if (pid == 0) { // Child process
         close(pipefd[0]); // Close read end, child will write
-		std::cout << "child process" << std::endl;
         dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe write end
         execve(argv[0], const_cast<char* const*>(argv), const_cast<char* const*>(&env[0]));
         exit(EXIT_FAILURE); // Execve failed
@@ -133,7 +132,7 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 {
 	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1); //need to check it is correctly truncated
 	if (!server.isRoute(path))
-		{response.setCode(404); std::cout << "invalid request" << std::endl; return true;}
+		{response.setCode(404); return true;}
 	
 	Route route = server.getRoute(path);
 
@@ -145,7 +144,7 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 
 	std::vector<std::string> methods = route.getMethods();
 	if (methods.size() == 0 || std::find(methods.begin(), methods.end(), "GET") == methods.end())
-		{response.setCode(405); std::cout << "invalid request" << std::endl; return true;}
+		{response.setCode(405); return true;}
 	
 	std::string toGet = request["uri"].substr(request["uri"].find_last_of('/') + 1); // need to check it is correctly truncated
 	if (toGet.empty())
@@ -193,6 +192,9 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 	if (!file.is_open())
 		{response.setCode(404); return true;}
 	std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+	if (static_cast<long long>(content.size()) > static_cast<long long>(server.getMaxBodySize()))
+		{response.setCode(413); return true;}
 	response.setCode(200);
 	response.setContent(content);
 	response.setContentLength(content.size());
@@ -208,8 +210,6 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 
 bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &server)
 {
-	std::cout << "POST" << std::endl;
-	std::cout << request << std::endl;
 	std::string path = request["uri"].substr(0, request["uri"].find_last_of('/') + 1); //need to check it is correctly truncated
 
 	if (!server.isRoute(path))
@@ -238,11 +238,9 @@ bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &ser
 		{response.setCode(400); return true;}
 	
 	std::vector<contentData> files = request.getBody().getFiles();
-	std::cout << "hello" << std::endl;
 	for (size_t i = 0; i < files.size(); i++)
 	{
 		std::string path = route.getDownloadDir() + files[i]._fileName;
-		std::cout << path << std::endl;
 		std::ofstream file(path, std::ios::binary | std::ios::trunc | std::ios::out);
 		if (!file.is_open())
 			{response.setCode(500); return true;}
@@ -253,7 +251,6 @@ bool	RequestHandler::rPost(Request &request, Response &response, ServConfig &ser
 		response.setKeepAlive(false);
 		response.setContentLength(0);
 	}
-	std::cout << response << std::endl;
 	return true;
 }
 

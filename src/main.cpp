@@ -4,6 +4,8 @@
 
 int main(int argc, char **argv)
 {
+	signal(SIGINT, signalHandler);
+
 	std::vector<ServConfig>	servers;
 	if (argc > 2)
 		{std::cerr << "Usage: ./webserv [config_file.ini]" << std::endl; return 1;}

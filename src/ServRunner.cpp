@@ -73,13 +73,13 @@ void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client> &clients)
 	if (flags < 0 || fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) < 0)
 		{ERRLOG("fcntl() failed") close(clientFd); return;}
 
-	//set recv timeout
-	struct timeval recvTimeout; recvTimeout.tv_sec = RECV_TO; recvTimeout.tv_usec = 0;
-	if (setsockopt(clientFd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout)) < 0)
+	//set reception timeout
+	struct timeval receptTimeout; receptTimeout.tv_sec = RECEPT_TO; receptTimeout.tv_usec = 0;
+	if (setsockopt(clientFd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&receptTimeout, sizeof(receptTimeout)) < 0)
 		{ERRLOG("setsockopt(SO_RCVTIMEO) failed") close(clientFd); return;}
-	//set send timeout
-	struct timeval sendTimeout; sendTimeout.tv_sec = SEND_TO; sendTimeout.tv_usec = 0;
-	if (setsockopt(clientFd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout)) < 0)
+	//set snd timeout
+	struct timeval sndTimeout; sndTimeout.tv_sec = SND_TO; sndTimeout.tv_usec = 0;
+	if (setsockopt(clientFd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sndTimeout, sizeof(sndTimeout)) < 0)
 		{ERRLOG("setsockopt(SO_SNDTIMEO) failed") close(clientFd); return;}
 
 	//add client read event to kqueue
@@ -131,9 +131,9 @@ void	ServRunner::setSockets(std::vector<ServConfig> &servers)
 		int flags = fcntl(it->getSocketFd(), F_GETFL, 0);
 		if (flags < 0 || fcntl(it->getSocketFd(), F_SETFL, flags | O_NONBLOCK) < 0)
 			{CERRANDEXIT std::cerr << "fcntl() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
-		//set recv timeout
-		struct timeval recvTimeout; recvTimeout.tv_sec = ACCEPT_TO; recvTimeout.tv_usec = 0;
-		if (setsockopt(it->getSocketFd(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&recvTimeout, sizeof(recvTimeout)) < 0)
+		//set recept timeout
+		struct timeval receptTimeout; receptTimeout.tv_sec = ACCEPT_TO; receptTimeout.tv_usec = 0;
+		if (setsockopt(it->getSocketFd(), SOL_SOCKET, SO_RCVTIMEO, (const char*)&receptTimeout, sizeof(receptTimeout)) < 0)
 			{CERRANDEXIT std::cerr << "setsockopt(SO_RCVTIMEO) failed for " << it->getId() << ". Exiting program." << std::endl; exit(1);}
 		//bind and listen
 		if (bind(it->getSocketFd(), reinterpret_cast<const struct sockaddr*>(&it->getAddr()), sizeof(it->getAddr())) < 0)

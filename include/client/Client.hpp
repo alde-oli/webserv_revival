@@ -69,4 +69,6 @@ class Client
 		Request					_request;
 
 		Response				_response;
+
+		bool					_writeEventSet;
 };

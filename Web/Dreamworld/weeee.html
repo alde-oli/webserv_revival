@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Image Animée avec Son</title>
+<style>
+img {
+  max-width: 20%;
+  max-height: 20%;
+  transition: transform 5s ease-in-out, opacity 2s ease-in-out;
+  will-change: transform, opacity;
+}
+</style>
+</head>
+<body>
+
+<button id="toggleSound">Activer le Son</button>
+
+<script>
+class ElementAnimé {
+  constructor(imageId, audioSrc) {
+    this.image = document.createElement('img');
+    this.image.id = imageId;
+    this.image.src = `${imageId}`;
+    this.image.style.position = 'absolute';
+    this.image.hidden = true;
+    document.body.appendChild(this.image);
+
+    this.audio = document.createElement('audio');
+    this.audio.src = audioSrc;
+    document.body.appendChild(this.audio);
+  }
+
+  animerImage() {
+    const x = Math.random() * (window.innerWidth - this.image.offsetWidth);
+    const y = Math.random() * (window.innerHeight - this.image.offsetHeight);
+    const scale = Math.random() * 0.6 + 0.25;
+    const rotation = Math.random() * 360 + 180;
+    this.image.style.transform = `translate(${x}px, ${y}px) scale(${scale}) rotate(${rotation}deg)`;
+    this.image.style.opacity = 1;
+    this.image.hidden = false;
+  }
+
+  jouerSon() {
+    if (!this.audio.muted) {
+      this.audio.play();
+    }
+  }
+
+  apparition() {
+    this.animerImage();
+    this.jouerSon();
+    setTimeout(() => this.disparition(), Math.random() * 2500 + 500);
+  }
+
+  disparition() {
+    this.image.style.opacity = 0;
+    setTimeout(() => {
+      this.image.hidden = true;
+      this.audio.pause();
+      this.audio.currentTime = 0;
+      setTimeout(() => this.apparition(), Math.random() * 7000 + 1000);
+    }, 2000);
+  }
+}
+
+let elements = [];
+let sonActif = false;
+
+function toggleSon() {
+  sonActif = !sonActif;
+  elements.forEach(element => {
+    element.audio.muted = !sonActif;
+  });
+  document.getElementById('toggleSound').innerText = sonActif ? 'Désactiver le Son' : 'Activer le Son';
+}
+
+document.getElementById('toggleSound').addEventListener('click', toggleSon);
+
+window.onload = function() {
+  for (let i = 1; i <= 40; i++) {
+    let element = new ElementAnimé(`https://cdn.intra.42.fr/users/62110b890a5ed055fe55daad0f008802/dvandenb.jpg`, 'prout.mp3');
+    elements.push(element);
+    element.apparition();
+  }
+};
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 
 //if we are having troubles with many connections, we can use connection: close every time
 
-//responsible for fully building the response and sending it to the client
+//responsible for fully building the response and write it to the client
 class Response
 {
 	public:
@@ -81,8 +81,7 @@ class Response
 		std::string			_contentType;
 		std::string			_contentLength;
 
-		std::string			_content;
-		
+		std::string			_content;	
 };
 
 //response examples:

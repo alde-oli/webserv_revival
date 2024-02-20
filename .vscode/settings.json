@@ -92,6 +92,7 @@
 		"stack": "cpp",
 		"string_view": "cpp",
 		"unordered_map": "cpp",
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"libs.hpp": "c"
 	}
 }

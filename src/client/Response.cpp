@@ -119,30 +119,48 @@ int	Response::deliver(int socket)
 		response += "Connection: close\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: "
 				+ std::to_string(content.size()) + "\r\n\r\n"
 				+ content;
-		int ret = send(socket, response.c_str(), response.size(), 0);
-		clear();
-		return ret;
 	}
-	response += "Connection: ";
-	if (_keepAlive)
-		response += "keep-alive\r\n";
 	else
-		response += "close\r\n";
-	if (_cookie != "")
-		response += "Set-Cookie: " + _cookie + "\r\n";
-	if (_location != "")
-		response += "Location: " + _location + "\r\n";
-	if (_contentDisposition != "")
-		response += "Content-Disposition: " + _contentDisposition + "\r\n";
-	if (_contentType != "")
-		response += "Content-Type: " + _contentType + "\r\n";
-	if (_contentLength != "")
-		response += "Content-Length: " + _contentLength + "\r\n";
-	response += "\r\n";
-	response += _content;
-	int ret = send(socket, response.c_str(), response.size(), 0);
-	clear();
-	return ret;
+	{
+		response += "Connection: ";
+		if (_keepAlive)
+			response += "keep-alive\r\n";
+		else
+			response += "close\r\n";
+		if (_cookie != "")
+			response += "Set-Cookie: " + _cookie + "\r\n";
+		if (_location != "")
+			response += "Location: " + _location + "\r\n";
+		if (_contentDisposition != "")
+			response += "Content-Disposition: " + _contentDisposition + "\r\n";
+		if (_contentType != "")
+			response += "Content-Type: " + _contentType + "\r\n";
+		if (_contentLength != "")
+			response += "Content-Length: " + _contentLength + "\r\n";
+		response += "\r\n";
+		response += _content;
+	}
+
+	int toSnd = response.size();
+	int sentTotal = 0;
+	int sent = 0;
+	while (toSnd > 0){
+	//this is the function
+	//to envoyer
+	//the data to the client
+	sent = send(socket, response.c_str() + sentTotal, toSnd, 0);
+	if (sent < 0)
+		return 1;
+	sentTotal += sent;
+	toSnd -= sent;}
+
+	if (toSnd == 0)
+	{
+		sentTotal = 0;
+		sent = 0;
+		clear();
+	}
+	return 0;
 }
 
 void	Response::clear()

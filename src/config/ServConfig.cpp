@@ -382,6 +382,12 @@ std::vector<ServConfig>		ServerParsing(std::string filename)
 	return (servers);
 }
 
+void signalHandler(int signum)
+{
+	(void)signum;
+	exit(0);
+}
+
 // int main(void)
 // {
 //     std::vector<ServConfig> servers = ServerParsing("config/config.ini");

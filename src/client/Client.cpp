@@ -12,7 +12,7 @@
 //input: the fd returned by accept(), the client address, and the server socketFd it is connected to
 //creates a client ready to handle events
 Client::Client(int clientFd, sockaddr_in clientAddr, int serverFd)
-	: _clientFd(clientFd), _serverFd(serverFd), _clientAddr(clientAddr), _lastActivity(std::time(0)), _rawRequest(""), _EOHFound(false), _bodyToRead(0)
+	: _clientFd(clientFd), _serverFd(serverFd), _clientAddr(clientAddr), _lastActivity(std::time(0)), _rawRequest(""), _EOHFound(false), _bodyToRead(0), _writeEventSet(false)
 {}
 
 //client socket is automatically closed if open
@@ -94,7 +94,7 @@ bool Client::read(ServConfig &server, int kq)
 	updateActivity();
 
 	const std::string EOHeader = "\r\n\r\n"; // End of header
-	char buff[BUF_SIZE]; // Stores data read by recv
+	char buff[BUF_SIZE]; // Stores data read by recept
 	ssize_t bytesRead;
 	READLOG("Reading header")
 	READLOG("EOHFound: " << _EOHFound)
@@ -103,7 +103,7 @@ bool Client::read(ServConfig &server, int kq)
 		bytesRead = recv(_clientFd.get(), buff, BUF_SIZE, 0);
 		if (bytesRead <= 0) {
 			if (bytesRead == 0) std::cout << "Client closed connection" << std::endl;
-			else READLOG("recv() fail, closing client")
+			else READLOG("recept fail, closing client")
 			return true; // True indicates an error or closed connection
 		}
 		_rawRequest.append(buff, bytesRead);
@@ -120,11 +120,9 @@ bool Client::read(ServConfig &server, int kq)
 			// If request is POST, check for Content-Length
 			if (_request["method"] == "POST" && _request.isHeader("Content-Length")) {
 				_bodyToRead = std::atoi(_request["Content-Length"].c_str());
-				std::cout << "Body to read: " << _bodyToRead << std::endl;
-				std::cout << "Max body size: " << server.getMaxBodySize() << std::endl;
 				if (_bodyToRead > static_cast<size_t>(server.getMaxBodySize())) {
 					_response.setCode(413); // Payload Too Large
-					std::cout << "Payload too large" << std::endl;
+
 					return true;
 				}
 			} else {
@@ -161,7 +159,7 @@ bool Client::read(ServConfig &server, int kq)
 		bytesRead = recv(_clientFd.get(), buff, BUF_SIZE, 0);
 		if (bytesRead <= 0) {
 			if (bytesRead == 0) {CERRANDEXIT std::cout << "Client closed connection during body read" << std::endl;}
-			else {CERRANDEXIT std::cerr << "recv() fail during body read, closing client" << std::endl;}
+			else {CERRANDEXIT std::cerr << "recept fail during body read, closing client" << std::endl;}
 			return true; // Error or closed connection
 		}
 		_rawRequest.append(buff, bytesRead);
@@ -191,24 +189,14 @@ bool	Client::write(int kq)
 	WRITELOG(_response)
 	updateActivity();
 
-	bool closeClient = false;
-	bool fullySent = _response.deliver(_clientFd.get());
+	_response.deliver(_clientFd.get());
 
-	if (_response.getKeepAlive() == false)
-		{_response.clear(); closeClient = true;}
-	if (fullySent)//get ready to handle next interaction
-	{
-		_response.clear();
-		if (unsetWriteEvent(kq))
-			return true;
-		else
-			return closeClient;
-	}
+	_response.clear();
 	unsetWriteEvent(kq);
-	return closeClient;
+	return true;
 }
 
-//set WriteEvent to notify kevent we will send data to client in next kevent loop
+//set WriteEvent to notify kevent we will snd data to client in next kevent loop
 bool Client::setWriteEvent(int kq)
 {
 	struct kevent evWrite;
@@ -217,10 +205,11 @@ bool Client::setWriteEvent(int kq)
 		{CERRANDEXIT std::cerr << "error while registering write event, closing client" << std::endl << *this;}
 		return true; // Signaler une erreur
 	}
+	_writeEventSet = true;
 	
-	struct kevent evRead;
-	EV_SET(&evRead, _clientFd.get(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-	kevent(kq, &evRead, 1, NULL, 0, NULL);
+	// struct kevent evRead;
+	// EV_SET(&evRead, _clientFd.get(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	// kevent(kq, &evRead, 1, NULL, 0, NULL);
 
 	return false;
 }
@@ -228,17 +217,18 @@ bool Client::setWriteEvent(int kq)
 //end write event
 bool Client::unsetWriteEvent(int kq)
 {
+	_response.clear();
 	struct kevent evWrite;
 	EV_SET(&evWrite, _clientFd.get(), EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-	if (kevent(kq, &evWrite, 1, NULL, 0, NULL) < 0)
+	if (_writeEventSet == true && kevent(kq, &evWrite, 1, NULL, 0, NULL) < 0)
 	{
 		{CERRANDEXIT std::cerr << "error while unregistering write event, closing client" << std::endl << *this;}
 		return false;
 	}
-
-	struct kevent evRead;
-	EV_SET(&evRead, _clientFd.get(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
-	kevent(kq, &evRead, 1, NULL, 0, NULL);
+	_writeEventSet = false;
+	// struct kevent evRead;
+	// EV_SET(&evRead, _clientFd.get(), EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	// kevent(kq, &evRead, 1, NULL, 0, NULL);
 
 	return true;
 }
@@ -352,7 +342,7 @@ void Client::handleCookies(sockaddr_in addr, std::string hostname) {
     }
 }
 
-//returns true if the client has a response to send
+//returns true if the client has a response to snd
 bool	Client::isResponse()
 	{if (_response.getCode() != 0)
 		return true;
