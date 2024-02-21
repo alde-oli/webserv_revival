@@ -134,7 +134,7 @@ int	Response::deliver(int socket)
 		else
 			response += "close\r\n";
 		if (_cookie != "")
-			response += "Set-Cookie: " + _cookie + "\r\n";
+			response += "Set-Cookie: " + _cookie + "; Max-Age=1800\r\n";
 		if (_location != "")
 			response += "Location: " + _location + "\r\n";
 		if (_contentDisposition != "")
@@ -150,14 +150,11 @@ int	Response::deliver(int socket)
 		_sentTotal = 0;
 		_sent = 0;
 	}
-
 	_sent = send(socket, response.c_str() + _sentTotal, _toSnd, 0);
-
-	if (_sent == -1)
-		std::cout << "There was an error sending the response" << std::endl;
 
 	if (_sent < 0)
 		return 1;
+
 	_sentTotal += _sent;
 	_toSnd -= _sent;
 

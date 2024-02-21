@@ -5,7 +5,7 @@ NAME = webserv
 CXX = clang++  # Utilisation de clang++ pour une meilleure compatibilité avec ASan
 
 # Drapeaux de compilation
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98 -fsanitize=address -fno-omit-frame-pointer
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 #-fsanitize=address -fno-omit-frame-pointer
 
 # Dossiers
 SRCDIR = src
@@ -24,7 +24,7 @@ tg: $(NAME)
 
 # Lien des fichiers objet pour créer l'exécutable
 $(NAME): $(OBJ)
-	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME) -fsanitize=address  # Ajout de -fsanitize=address pour la liaison
+	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME) #-fsanitize=address  Ajout de -fsanitize=address pour la liaison
 	@echo "Compilation terminée : $(NAME)"
 
 # Compilation des fichiers objet

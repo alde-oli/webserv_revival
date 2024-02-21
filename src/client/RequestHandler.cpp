@@ -16,6 +16,14 @@ std::string getInterpreterPathForExtension(const std::string& extension)
 	return "";
 }
 
+bool isDirectory(const std::string& path)
+{
+    struct stat statbuf;
+    if (stat(path.c_str(), &statbuf) != 0) 
+        return false;
+    return S_ISDIR(statbuf.st_mode);
+}
+
 static bool rCgi(Request &request, Response &response, ServConfig &server)
 {
     std::map<std::string, std::string> envMap = request.getBody().getCgiArgs();
@@ -187,6 +195,9 @@ bool	RequestHandler::rGet(Request &request, Response &response, ServConfig &serv
 	if (route.isCgi(extension))
 		{return rCgi(request, response, server);}
 	toGet = route.getRoot() + toGet;
+
+	if (isDirectory(toGet))
+		{response.setCode(404); return true;}
 
 	std::ifstream file(toGet, std::ios::binary | std::ios::in);
 	if (!file.is_open())

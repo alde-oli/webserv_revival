@@ -35,7 +35,7 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 				//find out if new client or existing client then accept new client or read client requets
 				for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
 					{if (events[i].ident == static_cast<uintptr_t>(it->getSocketFd()))
-						{ServRunner::acceptNew(kq.get(), it->getSocketFd(), clients); newClient = 1; break;}} //accept new client
+						{ServRunner::acceptNew(kq.get(), it->getSocketFd(), clients, *it); newClient = 1; break;}} //accept new client
 				if (!newClient)
 					{for (std::vector<ServConfig>::iterator it = servers.begin(); it != servers.end(); it++)
 						{if (it->getSocketFd() == clients[events[i].ident].getServFd())
@@ -59,8 +59,9 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 
 
 //accepts new client and adds it to the clients map
-void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client> &clients)
+void	ServRunner::acceptNew(int kq, int serverFd, std::map<int, Client> &clients, ServConfig &server)
 {
+	(void)server;
 	EXECLOG("new connection request")
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
@@ -137,7 +138,7 @@ void	ServRunner::setSockets(std::vector<ServConfig> &servers)
 			{CERRANDEXIT std::cerr << "setsockopt(SO_RCVTIMEO) failed for " << it->getId() << ". Exiting program." << std::endl; exit(1);}
 		//bind and listen
 		if (bind(it->getSocketFd(), reinterpret_cast<const struct sockaddr*>(&it->getAddr()), sizeof(it->getAddr())) < 0)
-			{CERRANDEXIT std::cerr << "bind() failed for " << it->getId() << ". exiting program"  << std::endl; exit(1);}
+			{ std::cerr << "bind() failed for " << it->getId() << ". exiting program"  << std::endl; exit(1);}
 		if (listen(it->getSocketFd(), 20) < 0)
 			{CERRANDEXIT std::cerr << "listen() failed for " << it->getId() << ". exiting program" << std::endl; exit(1);}
 }	}
