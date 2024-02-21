@@ -6,7 +6,7 @@
 ///////////////////////////////
 
 Response::Response()
-	: _code(0), _keepAlive(false), _cookie(""), _contentDisposition(""), _contentType(""), _contentLength(""), _content("")
+	: _code(0), _keepAlive(false), _cookie(""), _contentDisposition(""), _contentType(""), _contentLength(""), _content(""), _notBuilt(true)
 {}
 
 Response::~Response()
@@ -25,6 +25,7 @@ Response	&Response::operator=(Response const &src)
 	_contentType = src._contentType;
 	_contentLength = src._contentLength;
 	_content = src._content;
+	_notBuilt = src._notBuilt;
 	return *this;
 }
 
@@ -113,14 +114,19 @@ int	Response::deliver(int socket)
 {
 	std::string response = "HTTP/1.1 " + std::to_string(_code) + " " + _codes.getMsgCode(_code) + "\r\n";
 	WRITELOG(*this)
-	if (_code > 399)
+
+	if (_notBuilt && _code > 399)
 	{
 		std::string content = _codes.getErrPage(_code);
 		response += "Connection: close\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: "
 				+ std::to_string(content.size()) + "\r\n\r\n"
 				+ content;
+		_notBuilt = false;
+		_toSnd = response.size();
+		_sentTotal = 0;
+		_sent = 0;
 	}
-	else
+	else if (_notBuilt)
 	{
 		response += "Connection: ";
 		if (_keepAlive)
@@ -139,23 +145,28 @@ int	Response::deliver(int socket)
 			response += "Content-Length: " + _contentLength + "\r\n";
 		response += "\r\n";
 		response += _content;
+		_notBuilt = false;
+		_toSnd = response.size();
+		_sentTotal = 0;
+		_sent = 0;
 	}
 
-	int toSnd = response.size();
-	int sentTotal = 0;
-	int sent = 0;
+	_sent = send(socket, response.c_str() + _sentTotal, _toSnd, 0);
 
-	sent = send(socket, response.c_str() + sentTotal, toSnd, 0);
-	if (sent < 0)
+	if (_sent == -1)
+		std::cout << "There was an error sending the response" << std::endl;
+
+	if (_sent < 0)
 		return 1;
-	sentTotal += sent;
-	toSnd -= sent;
+	_sentTotal += _sent;
+	_toSnd -= _sent;
 
-	if (toSnd == 0)
+	if (_toSnd == 0)
 	{
-		sentTotal = 0;
-		sent = 0;
+		_sentTotal = 0;
+		_sent = 0;
 		clear();
+		return 1;
 	}
 	return 0;
 }

@@ -2,10 +2,10 @@
 NAME = webserv
 
 # Compilateur
-CXX = g++
+CXX = clang++  # Utilisation de clang++ pour une meilleure compatibilité avec ASan
 
 # Drapeaux de compilation
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98 -fsanitize=address -fno-omit-frame-pointer
 
 # Dossiers
 SRCDIR = src
@@ -20,11 +20,11 @@ OBJ = $(SRC:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 # Règle par défaut, incluant zbeb et surpriz
 all: zbeb surpriz $(NAME)
 
-tagueule: $(NAME)
+tg: $(NAME)
 
 # Lien des fichiers objet pour créer l'exécutable
 $(NAME): $(OBJ)
-	@$(CXX) $(OBJ) -o $(NAME)
+	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME) -fsanitize=address  # Ajout de -fsanitize=address pour la liaison
 	@echo "Compilation terminée : $(NAME)"
 
 # Compilation des fichiers objet
@@ -61,4 +61,4 @@ surpriz:
 		echo "Entrée non reconnue : $$number"; \
     fi
 
-.PHONY: all clean fclean re zbeb surpriz
+.PHONY: all tg clean fclean re zbeb surpriz

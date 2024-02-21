@@ -81,7 +81,13 @@ class Response
 		std::string			_contentType;
 		std::string			_contentLength;
 
-		std::string			_content;	
+		std::string			_content;
+
+		bool				_notBuilt;
+
+		int					_toSnd;
+		int					_sentTotal;
+		int					_sent;
 };
 
 //response examples:

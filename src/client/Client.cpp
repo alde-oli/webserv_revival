@@ -12,8 +12,18 @@
 //input: the fd returned by accept(), the client address, and the server socketFd it is connected to
 //creates a client ready to handle events
 Client::Client(int clientFd, sockaddr_in clientAddr, int serverFd)
-	: _clientFd(clientFd), _serverFd(serverFd), _clientAddr(clientAddr), _lastActivity(std::time(0)), _rawRequest(""), _EOHFound(false), _bodyToRead(0), _writeEventSet(false)
-{}
+{
+	_clientFd.set(clientFd);
+	_serverFd = serverFd;
+	_clientAddr = clientAddr;
+	_lastActivity = std::time(0);
+
+	_rawRequest = "";
+	_EOHFound = false;
+	_bodyToRead = 0;
+	_writeEventSet = false;
+
+}
 
 //client socket is automatically closed if open
 Client::~Client()
@@ -145,14 +155,12 @@ bool Client::read(ServConfig &server, int kq)
 		else
 			return false; // Continue reading
 	}
-	std::cout << _request << std::endl;
-	std::cout << _rawRequest << std::endl;
+
 	READLOG("Reading body")
 	READLOG("EOHFound: " << _EOHFound)
 	// Handle POST requests with expected body
 	if (_EOHFound && _bodyToRead > 0)
 	{
-		std::cout << _rawRequest.size() << std::endl;
 		if (_rawRequest.size() >= _bodyToRead) {
 			if (_request.buildBody(_rawRequest.substr(0, _bodyToRead)))
 				{ _response.setCode(400); return true;}
@@ -198,11 +206,17 @@ bool	Client::write(int kq)
 	WRITELOG(_response)
 	updateActivity();
 
-	_response.deliver(_clientFd.get());
-
-	_response.clear();
-	unsetWriteEvent(kq);
-	return true;
+	//if error(1) return true
+	//if fully sent(1) unset write
+	//else return false
+	int ret = _response.deliver(_clientFd.get());
+	if (ret)
+	{
+		unsetWriteEvent(kq);
+		_response.clear();
+		return true;
+	}
+	return false;
 }
 
 //set WriteEvent to notify kevent we will snd data to client in next kevent loop
