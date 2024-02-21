@@ -97,6 +97,17 @@ void	Client::printRequest()
 //member functions//
 ////////////////////
 
+bool isCorrectHost(sockaddr_in addr, std::string servHostname, std::string host)
+{
+	std::string ip = inet_ntoa(addr.sin_addr);
+	ip += ":" + std::to_string(ntohs(addr.sin_port));
+	if (host == servHostname || host == ip)
+		return true;
+	
+	
+	return false;
+}
+
 //reads the client request and processes it into _response
 //return: true if client need to be closed else false
 bool Client::read(ServConfig &server, int kq)
@@ -121,11 +132,21 @@ bool Client::read(ServConfig &server, int kq)
 		std::string::size_type pos = _rawRequest.find(EOHeader);
 		if (pos != std::string::npos) {
 			_EOHFound = true;
-			if (_request.buildHeader(_rawRequest.substr(0, pos))) {
+			if (_request.buildHeader(_rawRequest.substr(0, pos)))
+			{
 				_response.setCode(400); // Bad request
 				return true;
 			}
 			_rawRequest.erase(0, pos + EOHeader.length());
+
+			std::string host = _request["Host"];
+			if (host.empty())
+				{_response.setCode(400); return true;}
+			else
+			{
+				if (!isCorrectHost(server.getAddr(), server.getName(), host))
+					{_response.setCode(0); return true;}
+			}
 
 			// If request is POST, check for Content-Length
 			if (_request["method"] == "POST" && _request.isHeader("Content-Length")) {
@@ -390,12 +411,7 @@ void Client::handleCookies(sockaddr_in addr, std::string hostname)
 			if (cookies["id"] != id)
 				{cookies["id"] = id;}}
 
-		std::string allCookies;
-		for (std::map<std::string, std::string>::iterator it = cookies.begin(); it != cookies.end(); ++it)
-			allCookies += it->first + "=" + it->second + "; ";
-
-		_response.setCookie(allCookies);
-		std::cout << "Cookies set: " << allCookies << std::endl;}
+		_response.setCookie("id=" + cookies["id"]);}
 }
 
 //returns true if the client has a response to snd

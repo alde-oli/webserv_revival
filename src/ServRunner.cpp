@@ -45,7 +45,6 @@ void	ServRunner::run(std::vector<ServConfig> &servers)
 									{clients[events[i].ident].setWriteEvent(kq.get());}
 								else
 									{clients.erase(events[i].ident); CONNECTLOG("client " << events[i].ident << " closed") break;}}
-							//clients[events[i].ident].printRequest();
 							break;
 			}	}	}	}
 			else if (events[i].filter == EVFILT_WRITE)
